@@ -17,7 +17,6 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
-  verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { IconPencil, IconTrash, IconUsers, IconGripVertical, IconArrowRight, IconPlus, IconDots, IconBuilding } from "@tabler/icons-react"
@@ -80,133 +79,230 @@ function DepartmentCard({
       style={style}
       className={`relative ${isDragging ? "opacity-50" : ""}`}
     >
-      <div className="flex items-start gap-3 relative">
-        {/* Визуальные связи иерархии - как в Битрикс */}
-        {level > 0 && (
-          <div className="flex flex-col items-center pt-3 min-w-[40px] relative">
-            {/* Вертикальная линия сверху */}
-            <div className="w-0.5 h-3 bg-blue-500" />
-            {/* Горизонтальная линия со стрелкой */}
-            <div className="flex items-center w-full">
-              <div className="flex-1 h-0.5 bg-blue-500" />
-              <div className="w-3 h-3 flex items-center justify-center -ml-1">
-                <IconArrowRight className="h-3 w-3 text-blue-500" />
+      {/* Маленькая карточка отдела */}
+      <Card
+        className={`cursor-pointer transition-all hover:shadow-md border w-[200px] ${
+          isSortableDragging ? "ring-2 ring-primary border-primary" : "border-border"
+        }`}
+        onClick={() => onDepartmentClick(department)}
+      >
+        <CardHeader className="p-3">
+          <div className="flex items-start justify-between gap-1">
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-sm font-semibold mb-1 truncate">{department.name}</CardTitle>
+              {manager && (
+                <div className="text-xs text-muted-foreground mb-1 truncate">
+                  {manager.name}
+                </div>
+              )}
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                <span className="flex items-center gap-0.5">
+                  <IconUsers className="h-3 w-3" />
+                  {department.employeeCount}
+                </span>
+                {subDepartmentsCount > 0 && (
+                  <span className="flex items-center gap-0.5">
+                    <IconBuilding className="h-3 w-3" />
+                    {subDepartmentsCount}
+                  </span>
+                )}
               </div>
             </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 -mr-1 -mt-1"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <IconDots className="h-3.5 w-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onEditDepartment(department)
+                  }}
+                >
+                  <IconPencil className="mr-2 h-4 w-4" />
+                  Редактировать
+                </DropdownMenuItem>
+                {onAddSubDepartment && (
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onAddSubDepartment(department.id)
+                    }}
+                  >
+                    <IconPlus className="mr-2 h-4 w-4" />
+                    Добавить подотдел
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem
+                  className="text-destructive"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onDeleteDepartment(department.id)
+                  }}
+                >
+                  <IconTrash className="mr-2 h-4 w-4" />
+                  Удалить
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-        )}
-        {level === 0 && <div className="w-0" />}
+        </CardHeader>
+      </Card>
 
-        {/* Карточка отдела в стиле Битрикс */}
-        <div className="flex-1 relative">
-          <Card
-            className={`cursor-pointer transition-all hover:shadow-lg border-2 ${
-              isSortableDragging ? "ring-2 ring-primary border-primary" : "border-border"
-            }`}
-            onClick={() => onDepartmentClick(department)}
-          >
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  <CardTitle className="text-base font-semibold mb-1">{department.name}</CardTitle>
-                  {manager && (
-                    <div className="text-sm text-muted-foreground mb-2">
-                      <div className="font-medium">{manager.name}</div>
-                      <div className="text-xs">{manager.position}</div>
-                    </div>
-                  )}
-                  <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <IconUsers className="h-3.5 w-3.5" />
-                      {department.employeeCount} сотрудников
-                    </span>
-                    {subDepartmentsCount > 0 && (
-                      <span className="flex items-center gap-1">
-                        <IconBuilding className="h-3.5 w-3.5" />
-                        {subDepartmentsCount} отделов
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <IconDots className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onEditDepartment(department)
-                      }}
-                    >
-                      <IconPencil className="mr-2 h-4 w-4" />
-                      Редактировать
-                    </DropdownMenuItem>
-                    {onAddSubDepartment && (
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          onAddSubDepartment(department.id)
-                        }}
-                      >
-                        <IconPlus className="mr-2 h-4 w-4" />
-                        Добавить подотдел
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem
-                      className="text-destructive"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onDeleteDepartment(department.id)
-                      }}
-                    >
-                      <IconTrash className="mr-2 h-4 w-4" />
-                      Удалить
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </CardHeader>
-          </Card>
-
-          {/* Кнопка добавления подотдела (синий +) */}
-          {onAddSubDepartment && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute -bottom-3 left-1/2 -translate-x-1/2 h-6 w-6 rounded-full bg-blue-500 hover:bg-blue-600 text-white border-2 border-background shadow-md"
-              onClick={(e) => {
-                e.stopPropagation()
-                onAddSubDepartment(department.id)
-              }}
-            >
-              <IconPlus className="h-3.5 w-3.5" />
-            </Button>
-          )}
-
-          {/* Вертикальная линия для дочерних отделов */}
-          {hasChildren && (
-            <div className="absolute left-1/2 -translate-x-1/2 top-full w-0.5 h-4 bg-blue-500" style={{ marginTop: '4px' }} />
-          )}
-        </div>
-
-        {/* Иконка для drag */}
-        <div
-          {...attributes}
-          {...listeners}
-          className="pt-3 cursor-grab active:cursor-grabbing"
-          onClick={(e) => e.stopPropagation()}
+      {/* Кнопка добавления подотдела (синий +) */}
+      {onAddSubDepartment && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute -bottom-3 left-1/2 -translate-x-1/2 h-5 w-5 rounded-full bg-blue-500 hover:bg-blue-600 text-white border-2 border-background shadow-md z-10"
+          onClick={(e) => {
+            e.stopPropagation()
+            onAddSubDepartment(department.id)
+          }}
         >
-          <IconGripVertical className="h-5 w-5 text-muted-foreground" />
-        </div>
+          <IconPlus className="h-3 w-3" />
+        </Button>
+      )}
+
+      {/* Иконка для drag */}
+      <div
+        {...attributes}
+        {...listeners}
+        className="absolute -left-6 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <IconGripVertical className="h-4 w-4 text-muted-foreground" />
       </div>
+    </div>
+  )
+}
+
+interface TreeNodeProps {
+  department: Department
+  level: number
+  departments: Department[]
+  employees: Employee[]
+  getDepartmentManager: (dept: Department) => Employee | null
+  getSubDepartmentsCount: (id: string) => number
+  onDepartmentClick: (department: Department) => void
+  onEditDepartment: (department: Department) => void
+  onDeleteDepartment: (id: string) => void
+  onAddSubDepartment?: (parentId: string) => void
+  activeId: string | null
+}
+
+function TreeNode({
+  department,
+  level,
+  departments,
+  employees,
+  getDepartmentManager,
+  getSubDepartmentsCount,
+  onDepartmentClick,
+  onEditDepartment,
+  onDeleteDepartment,
+  onAddSubDepartment,
+  activeId,
+}: TreeNodeProps) {
+  const children = React.useMemo(() => {
+    return departments
+      .filter((d) => d.parentId === department.id)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+  }, [departments, department.id])
+
+  const subCount = getSubDepartmentsCount(department.id)
+  const manager = getDepartmentManager(department)
+  const hasChildren = children.length > 0
+
+  return (
+    <div className="flex flex-col items-center">
+      {/* Карточка отдела */}
+      <div className="relative mb-4">
+        <DepartmentCard
+          department={department}
+          level={level}
+          subDepartmentsCount={subCount}
+          manager={manager}
+          onDepartmentClick={onDepartmentClick}
+          onEditDepartment={onEditDepartment}
+          onDeleteDepartment={onDeleteDepartment}
+          onAddSubDepartment={onAddSubDepartment}
+          isDragging={activeId === department.id}
+          hasChildren={hasChildren}
+        />
+
+        {/* Вертикальная линия вниз от карточки, если есть дети */}
+        {hasChildren && (
+          <div className="absolute left-1/2 -translate-x-1/2 top-full w-0.5 h-4 bg-blue-500" />
+        )}
+      </div>
+
+      {/* Дочерние отделы */}
+      {hasChildren && (
+        <div className="relative flex items-start gap-6 mt-6">
+          {/* Горизонтальная линия над дочерними отделами */}
+          {children.length > 1 && (
+            <div className="absolute left-0 right-0 top-0 h-0.5 bg-blue-500" />
+          )}
+          
+          {/* Вертикальные линии от горизонтальной к каждому дочернему отделу */}
+          {children.map((child, index) => {
+            const isFirst = index === 0
+            const isLast = index === children.length - 1
+            
+            return (
+              <div key={child.id} className="relative flex flex-col items-center">
+                {/* Вертикальная линия сверху */}
+                <div className={`w-0.5 h-4 bg-blue-500 ${children.length > 1 ? '' : ''}`} />
+                
+                {/* Горизонтальная линия со стрелкой (только для первого) */}
+                {isFirst && children.length > 1 && (
+                  <div className="absolute top-0 left-1/2 w-1/2 h-0.5 bg-blue-500" />
+                )}
+                
+                {/* Горизонтальная линия для всех кроме первого и последнего */}
+                {!isFirst && !isLast && (
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-blue-500" />
+                )}
+                
+                {/* Горизонтальная линия для последнего */}
+                {isLast && children.length > 1 && (
+                  <div className="absolute top-0 right-1/2 w-1/2 h-0.5 bg-blue-500" />
+                )}
+                
+                {/* Стрелка справа от карточки */}
+                <div className="absolute top-2 -right-3">
+                  <IconArrowRight className="h-3 w-3 text-blue-500" />
+                </div>
+              
+                {/* Рекурсивно рендерим дочерний узел */}
+                <div className="mt-4">
+                  <TreeNode
+                    department={child}
+                    level={level + 1}
+                    departments={departments}
+                    employees={employees}
+                    getDepartmentManager={getDepartmentManager}
+                    getSubDepartmentsCount={getSubDepartmentsCount}
+                    onDepartmentClick={onDepartmentClick}
+                    onEditDepartment={onEditDepartment}
+                    onDeleteDepartment={onDeleteDepartment}
+                    onAddSubDepartment={onAddSubDepartment}
+                    activeId={activeId}
+                  />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
@@ -252,57 +348,28 @@ export function DepartmentsHierarchyView({
     [departments]
   )
 
-  // Построение плоского списка с уровнями для отображения иерархии
-  const buildFlatTree = React.useCallback((depts: Department[]): Array<{ dept: Department; level: number }> => {
-    const deptMap = new Map<string, Department>()
-    depts.forEach((dept) => {
-      deptMap.set(dept.id, dept)
-    })
-
-    // Сортируем по order
-    const sortByOrder = (a: Department, b: Department) => {
-      const orderA = a.order ?? 0
-      const orderB = b.order ?? 0
-      return orderA - orderB
-    }
-
-    // Функция для получения дочерних отделов
-    const getChildren = (parentId: string | null): Department[] => {
-      return depts
-        .filter((d) => (d.parentId || null) === parentId)
-        .sort(sortByOrder)
-    }
-
-    // Рекурсивная функция для построения плоского списка
-    const flattenWithLevels = (parentId: string | null, level: number = 0): Array<{ dept: Department; level: number }> => {
-      const result: Array<{ dept: Department; level: number }> = []
-      const children = getChildren(parentId)
-      
-      children.forEach((child) => {
-        result.push({ dept: child, level })
-        // Рекурсивно добавляем дочерние отделы
-        result.push(...flattenWithLevels(child.id, level + 1))
-      })
-      
-      return result
-    }
-
-    return flattenWithLevels(null, 0)
-  }, [])
-
-  const departmentsWithLevels = React.useMemo(() => {
+  // Получаем корневые отделы (без родителя)
+  const rootDepartments = React.useMemo(() => {
     const filtered = departments.filter((dept) => {
       const matchesSearch =
         dept.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         dept.type.toLowerCase().includes(searchQuery.toLowerCase())
       return matchesSearch
     })
-    return buildFlatTree(filtered)
-  }, [departments, searchQuery, buildFlatTree])
+    
+    return filtered
+      .filter((d) => !d.parentId)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+  }, [departments, searchQuery])
 
   const filteredDepartments = React.useMemo(() => {
-    return departmentsWithLevels.map((item) => item.dept)
-  }, [departmentsWithLevels])
+    return departments.filter((dept) => {
+      const matchesSearch =
+        dept.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        dept.type.toLowerCase().includes(searchQuery.toLowerCase())
+      return matchesSearch
+    })
+  }, [departments, searchQuery])
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string)
@@ -334,37 +401,33 @@ export function DepartmentsHierarchyView({
   const activeDepartment = activeId ? departments.find((d) => d.id === activeId) : null
 
   return (
-    <div className="px-4 lg:px-6 py-4">
+    <div className="px-4 lg:px-6 py-4 overflow-auto">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <SortableContext items={filteredDepartments.map((d) => d.id)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-4">
-            {departmentsWithLevels.map(({ dept, level }) => {
-              const subCount = getSubDepartmentsCount(dept.id)
-              const manager = getDepartmentManager(dept)
-              const hasChildren = subCount > 0
-              
-              return (
-                <DepartmentCard
-                  key={dept.id}
-                  department={dept}
-                  level={level}
-                  subDepartmentsCount={subCount}
-                  manager={manager}
+        <SortableContext items={filteredDepartments.map((d) => d.id)}>
+          <div className="flex flex-col items-center min-h-full">
+            {rootDepartments.length > 0 ? (
+              rootDepartments.map((rootDept) => (
+                <TreeNode
+                  key={rootDept.id}
+                  department={rootDept}
+                  level={0}
+                  departments={filteredDepartments}
+                  employees={employees}
+                  getDepartmentManager={getDepartmentManager}
+                  getSubDepartmentsCount={getSubDepartmentsCount}
                   onDepartmentClick={onDepartmentClick}
                   onEditDepartment={onEditDepartment}
                   onDeleteDepartment={onDeleteDepartment}
                   onAddSubDepartment={onAddSubDepartment}
-                  isDragging={activeId === dept.id}
-                  hasChildren={hasChildren}
+                  activeId={activeId}
                 />
-              )
-            })}
-            {departmentsWithLevels.length === 0 && (
+              ))
+            ) : (
               <div className="text-center py-12 text-muted-foreground">
                 <p>Отделы не найдены</p>
               </div>
@@ -373,14 +436,14 @@ export function DepartmentsHierarchyView({
         </SortableContext>
         <DragOverlay>
           {activeDepartment ? (
-            <div className="w-64">
-              <Card className="opacity-90 shadow-lg border-2">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base font-semibold">{activeDepartment.name}</CardTitle>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
-                    <span className="flex items-center gap-1">
-                      <IconUsers className="h-3.5 w-3.5" />
-                      {activeDepartment.employeeCount} сотрудников
+            <div className="w-[200px]">
+              <Card className="opacity-90 shadow-lg border">
+                <CardHeader className="p-3">
+                  <CardTitle className="text-sm font-semibold">{activeDepartment.name}</CardTitle>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                    <span className="flex items-center gap-0.5">
+                      <IconUsers className="h-3 w-3" />
+                      {activeDepartment.employeeCount}
                     </span>
                   </div>
                 </CardHeader>
