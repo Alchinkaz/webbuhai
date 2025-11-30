@@ -1,0 +1,167 @@
+"use client"
+
+import type React from "react"
+import { useState } from "react"
+import { useFinance } from "@/lib/finance-context"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { toast } from "sonner"
+
+interface AccountFormProps {
+  onSuccess?: () => void
+  onCancel?: () => void
+  accountId?: string
+  initialValues?: {
+    name?: string
+    type?: "bank" | "cash" | "kaspi" | "other"
+    balance?: number
+    currency?: string
+    accountNumber?: string
+  }
+}
+
+export function AccountForm({ onSuccess, onCancel, accountId, initialValues }: AccountFormProps) {
+  const { addAccount, updateAccount, accounts } = useFinance()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const [formData, setFormData] = useState({
+    name: initialValues?.name || "",
+    type: (initialValues?.type || "bank") as "bank" | "cash" | "kaspi" | "card" | "other",
+    balance: initialValues?.balance != null ? String(initialValues.balance) : "",
+    currency: initialValues?.currency || "KZT",
+    accountNumber: initialValues?.accountNumber || "",
+    parentId: (initialValues as any)?.parentId || "",
+  })
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    // Валидация: номер счета обязателен только для не-наличных счетов
+    const isAccountNumberRequired = formData.type !== "cash"
+    if (!formData.name || !formData.balance || (isAccountNumberRequired && !formData.accountNumber?.trim())) {
+      toast.error(`Пожалуйста, заполните все обязательные поля${isAccountNumberRequired ? " (включая номер счета)" : ""}`)
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const payload = {
+        name: formData.name,
+        type: formData.type,
+        balance: Number.parseFloat(formData.balance) || 0,
+        currency: formData.currency,
+        // Для наличных счетов номер счета не требуется
+        accountNumber: formData.type === "cash" ? "" : formData.accountNumber.trim(),
+        parentId: formData.type === "card" && formData.parentId ? formData.parentId : undefined,
+      }
+
+      if (accountId) {
+        try {
+          updateAccount(accountId, payload)
+          toast.success(`Счёт "${formData.name}" обновлён`)
+        } catch (error: any) {
+          toast.error(error.message || "Не удалось обновить счёт")
+          return
+        }
+      } else {
+        try {
+          addAccount(payload)
+          toast.success(`Счёт "${formData.name}" успешно создан`)
+        } catch (error: any) {
+          toast.error(error.message || "Не удалось создать счёт")
+          return
+        }
+      }
+
+      if (!accountId) {
+        setFormData({ name: "", type: "bank", balance: "", currency: "KZT", accountNumber: "", parentId: "" })
+      }
+      onSuccess?.()
+    } catch (error) {
+      toast.error("Не удалось создать счёт. Попробуйте снова.")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="name">Название счёта *</Label>
+        <Input id="name" placeholder="Например: Kaspi Gold, Наличные, Halyk Bank" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required disabled={isSubmitting} />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="type">Тип счёта</Label>
+          <Select value={formData.type} onValueChange={(value) => {
+            const newType = value as typeof formData.type
+            // При выборе типа "наличные" очищаем номер счета
+            setFormData({ 
+              ...formData, 
+              type: newType,
+              accountNumber: newType === "cash" ? "" : formData.accountNumber
+            })
+          }} disabled={isSubmitting}>
+            <SelectTrigger id="type"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="bank">Банковский счёт</SelectItem>
+              <SelectItem value="kaspi">Kaspi</SelectItem>
+              <SelectItem value="cash">Наличные</SelectItem>
+              <SelectItem value="card">Карта (подсчёт)</SelectItem>
+              <SelectItem value="other">Другое</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="currency">Валюта</Label>
+          <Select value={formData.currency} onValueChange={(value) => setFormData({ ...formData, currency: value })} disabled={isSubmitting}>
+            <SelectTrigger id="currency"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="KZT">KZT (Тенге)</SelectItem>
+              <SelectItem value="USD">USD (Доллар)</SelectItem>
+              <SelectItem value="EUR">EUR (Евро)</SelectItem>
+              <SelectItem value="RUB">RUB (Рубль)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {formData.type === "card" && (
+        <div className="space-y-2">
+          <Label htmlFor="parent">Родительский счёт</Label>
+          <Select value={formData.parentId} onValueChange={(value) => setFormData({ ...formData, parentId: value })} disabled={isSubmitting}>
+            <SelectTrigger id="parent"><SelectValue placeholder="Выберите счёт" /></SelectTrigger>
+            <SelectContent>
+              {accounts.filter((a) => a.type !== "card").map((a) => (
+                <SelectItem key={a.id} value={a.id}>
+                  {a.name} ({a.currency})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {formData.type !== "cash" && (
+        <div className="space-y-2">
+          <Label htmlFor="accountNumber">Номер счёта (ИИК) *</Label>
+          <Input id="accountNumber" placeholder="Например: KZ87722C000022014099" value={formData.accountNumber} onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })} required disabled={isSubmitting} />
+          <p className="text-xs text-muted-foreground">Укажите ИИК (номер счета) для автоматического определения при импорте выписок. Должен быть уникальным.</p>
+        </div>
+      )}
+
+      <div className="space-y-2">
+        <Label htmlFor="balance">Начальный баланс *</Label>
+        <Input id="balance" type="number" step="0.01" placeholder="0.00" value={formData.balance} onChange={(e) => setFormData({ ...formData, balance: e.target.value })} required disabled={isSubmitting} />
+      </div>
+
+      <div className="flex gap-2">
+        <Button type="submit" className="flex-1" disabled={isSubmitting}>{isSubmitting ? "Создание..." : "Создать счёт"}</Button>
+        {onCancel && (<Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>Отмена</Button>)}
+      </div>
+    </form>
+  )
+}

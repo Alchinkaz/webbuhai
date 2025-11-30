@@ -1,0 +1,478 @@
+[
+  {
+    "id": 1,
+    "header": "Cover page",
+    "description": "The cover page provides an overview of the proposal and sets the tone for the document.",
+    "type": "Information",
+    "creationDate": "2024-12-15"
+  },
+  {
+    "id": 2,
+    "header": "Table of contents",
+    "description": "A comprehensive list of all sections and subsections in the proposal.",
+    "type": "Information",
+    "creationDate": "2024-12-10"
+  },
+  {
+    "id": 3,
+    "header": "Executive summary",
+    "description": "A brief overview of the key points and recommendations in the proposal.",
+    "type": "Information",
+    "creationDate": "2024-12-08"
+  },
+  {
+    "id": 4,
+    "header": "Technical approach",
+    "description": "Detailed explanation of the technical methodology and implementation strategy.",
+    "type": "Information",
+    "creationDate": "2024-12-05"
+  },
+  {
+    "id": 5,
+    "header": "Design",
+    "description": "Visual and functional design specifications for the project.",
+    "type": "Task",
+    "creationDate": "2024-12-20"
+  },
+  {
+    "id": 6,
+    "header": "Capabilities",
+    "description": "Overview of system capabilities and features.",
+    "type": "Information",
+    "creationDate": "2024-12-18"
+  },
+  {
+    "id": 7,
+    "header": "Integration with existing systems",
+    "description": "Plan for integrating with current infrastructure and systems.",
+    "type": "Task",
+    "creationDate": "2024-12-22"
+  },
+  {
+    "id": 8,
+    "header": "Innovation and Advantages",
+    "description": "Unique innovations and competitive advantages of the solution.",
+    "type": "Information",
+    "creationDate": "2024-11-28"
+  },
+  {
+    "id": 9,
+    "header": "Overview of EMR's Innovative Solutions",
+    "description": "Comprehensive overview of EMR's cutting-edge solutions.",
+    "type": "Information",
+    "creationDate": "2024-11-25"
+  },
+  {
+    "id": 10,
+    "header": "Advanced Algorithms and Machine Learning",
+    "description": "Details on AI and ML algorithms used in the system.",
+    "type": "Information",
+    "creationDate": "2024-11-20"
+  },
+  {
+    "id": 11,
+    "header": "Adaptive Communication Protocols",
+    "description": "Flexible communication protocols for various scenarios.",
+    "type": "Information",
+    "creationDate": "2024-11-18"
+  },
+  {
+    "id": 12,
+    "header": "Advantages Over Current Technologies",
+    "description": "Comparison showing benefits over existing solutions.",
+    "type": "Information",
+    "creationDate": "2024-11-15"
+  },
+  {
+    "id": 13,
+    "header": "Past Performance",
+    "description": "Track record and historical performance metrics.",
+    "type": "Information",
+    "creationDate": "2024-11-12"
+  },
+  {
+    "id": 14,
+    "header": "Customer Feedback and Satisfaction Levels",
+    "description": "Analysis of customer reviews and satisfaction ratings.",
+    "type": "Information",
+    "creationDate": "2024-11-10"
+  },
+  {
+    "id": 15,
+    "header": "Implementation Challenges and Solutions",
+    "description": "Potential obstacles and proposed mitigation strategies.",
+    "type": "Task",
+    "creationDate": "2024-11-08"
+  },
+  {
+    "id": 16,
+    "header": "Security Measures and Data Protection Policies",
+    "description": "Comprehensive security framework and data protection guidelines.",
+    "type": "Information",
+    "creationDate": "2024-12-25"
+  },
+  {
+    "id": 17,
+    "header": "Scalability and Future Proofing",
+    "description": "Plans for scaling and adapting to future requirements.",
+    "type": "Information",
+    "creationDate": "2024-11-05"
+  },
+  {
+    "id": 18,
+    "header": "Cost-Benefit Analysis",
+    "description": "Financial analysis comparing costs and expected benefits.",
+    "type": "Information",
+    "creationDate": "2024-11-03"
+  },
+  {
+    "id": 19,
+    "header": "User Training and Onboarding Experience",
+    "description": "Training programs and onboarding process for new users.",
+    "type": "Task",
+    "creationDate": "2024-11-01"
+  },
+  {
+    "id": 20,
+    "header": "Future Development Roadmap",
+    "description": "Long-term development plans and feature roadmap.",
+    "type": "Project",
+    "creationDate": "2024-10-30"
+  },
+  {
+    "id": 21,
+    "header": "System Architecture Overview",
+    "description": "High-level view of system architecture and components.",
+    "type": "Information",
+    "creationDate": "2024-12-28"
+  },
+  {
+    "id": 22,
+    "header": "Risk Management Plan",
+    "description": "Identification and mitigation strategies for project risks.",
+    "type": "Project",
+    "creationDate": "2024-10-28"
+  },
+  {
+    "id": 23,
+    "header": "Compliance Documentation",
+    "description": "Documentation ensuring regulatory and legal compliance.",
+    "type": "Information",
+    "creationDate": "2024-12-30"
+  },
+  {
+    "id": 24,
+    "header": "API Documentation",
+    "description": "Complete API reference and integration guides.",
+    "type": "Information",
+    "creationDate": "2024-10-25"
+  },
+  {
+    "id": 25,
+    "header": "User Interface Mockups",
+    "description": "Visual mockups and wireframes for the user interface.",
+    "type": "Task",
+    "creationDate": "2025-01-02"
+  },
+  {
+    "id": 26,
+    "header": "Database Schema",
+    "description": "Database structure and relationship diagrams.",
+    "type": "Information",
+    "creationDate": "2024-10-22"
+  },
+  {
+    "id": 27,
+    "header": "Testing Methodology",
+    "description": "Testing strategies and quality assurance procedures.",
+    "type": "Task",
+    "creationDate": "2025-01-05"
+  },
+  {
+    "id": 28,
+    "header": "Deployment Strategy",
+    "description": "Step-by-step deployment plan and rollout schedule.",
+    "type": "Project",
+    "creationDate": "2024-10-20"
+  },
+  {
+    "id": 29,
+    "header": "Budget Breakdown",
+    "description": "Detailed financial breakdown of project costs.",
+    "type": "Information",
+    "creationDate": "2025-01-08"
+  },
+  {
+    "id": 30,
+    "header": "Market Analysis",
+    "description": "Analysis of market trends and competitive landscape.",
+    "type": "Information",
+    "creationDate": "2024-10-18"
+  },
+  {
+    "id": 31,
+    "header": "Competitor Comparison",
+    "description": "Side-by-side comparison with competitor solutions.",
+    "type": "Task",
+    "creationDate": "2025-01-10"
+  },
+  {
+    "id": 32,
+    "header": "Maintenance Plan",
+    "description": "Ongoing maintenance and support procedures.",
+    "type": "Project",
+    "creationDate": "2024-10-15"
+  },
+  {
+    "id": 33,
+    "header": "User Personas",
+    "description": "Detailed profiles of target user groups.",
+    "type": "Information",
+    "creationDate": "2025-01-12"
+  },
+  {
+    "id": 34,
+    "header": "Accessibility Compliance",
+    "description": "Ensuring accessibility standards are met.",
+    "type": "Information",
+    "creationDate": "2024-10-12"
+  },
+  {
+    "id": 35,
+    "header": "Performance Metrics",
+    "description": "Key performance indicators and measurement criteria.",
+    "type": "Task",
+    "creationDate": "2025-01-15"
+  },
+  {
+    "id": 36,
+    "header": "Disaster Recovery Plan",
+    "description": "Procedures for system recovery in case of failure.",
+    "type": "Project",
+    "creationDate": "2024-10-10"
+  },
+  {
+    "id": 37,
+    "header": "Third-party Integrations",
+    "description": "Integration plans for external services and APIs.",
+    "type": "Task",
+    "creationDate": "2025-01-18"
+  },
+  {
+    "id": 38,
+    "header": "User Feedback Summary",
+    "description": "Compilation of user feedback and feature requests.",
+    "type": "Information",
+    "creationDate": "2024-10-08"
+  },
+  {
+    "id": 39,
+    "header": "Localization Strategy",
+    "description": "Plans for multi-language and regional support.",
+    "type": "Project",
+    "creationDate": "2025-01-20"
+  },
+  {
+    "id": 40,
+    "header": "Mobile Compatibility",
+    "description": "Ensuring optimal mobile device experience.",
+    "type": "Task",
+    "creationDate": "2024-10-05"
+  },
+  {
+    "id": 41,
+    "header": "Data Migration Plan",
+    "description": "Strategy for migrating existing data to new system.",
+    "type": "Project",
+    "creationDate": "2025-01-22"
+  },
+  {
+    "id": 42,
+    "header": "Quality Assurance Protocols",
+    "description": "QA processes and testing standards.",
+    "type": "Task",
+    "creationDate": "2024-10-03"
+  },
+  {
+    "id": 43,
+    "header": "Stakeholder Analysis",
+    "description": "Identification and analysis of project stakeholders.",
+    "type": "Information",
+    "creationDate": "2025-01-25"
+  },
+  {
+    "id": 44,
+    "header": "Environmental Impact Assessment",
+    "description": "Evaluation of environmental considerations.",
+    "type": "Information",
+    "creationDate": "2024-10-01"
+  },
+  {
+    "id": 45,
+    "header": "Intellectual Property Rights",
+    "description": "Documentation of IP ownership and licensing.",
+    "type": "Information",
+    "creationDate": "2025-01-28"
+  },
+  {
+    "id": 46,
+    "header": "Customer Support Framework",
+    "description": "Support structure and customer service protocols.",
+    "type": "Project",
+    "creationDate": "2024-09-28"
+  },
+  {
+    "id": 47,
+    "header": "Version Control Strategy",
+    "description": "Version management and code repository guidelines.",
+    "type": "Task",
+    "creationDate": "2025-01-30"
+  },
+  {
+    "id": 48,
+    "header": "Continuous Integration Pipeline",
+    "description": "Automated build and deployment pipeline setup.",
+    "type": "Task",
+    "creationDate": "2024-09-25"
+  },
+  {
+    "id": 49,
+    "header": "Regulatory Compliance",
+    "description": "Ensuring adherence to industry regulations.",
+    "type": "Information",
+    "creationDate": "2025-02-01"
+  },
+  {
+    "id": 50,
+    "header": "User Authentication System",
+    "description": "Secure authentication and authorization mechanisms.",
+    "type": "Task",
+    "creationDate": "2024-09-22"
+  },
+  {
+    "id": 51,
+    "header": "Data Analytics Framework",
+    "description": "Analytics tools and reporting capabilities.",
+    "type": "Task",
+    "creationDate": "2025-02-03"
+  },
+  {
+    "id": 52,
+    "header": "Cloud Infrastructure",
+    "description": "Cloud hosting and infrastructure specifications.",
+    "type": "Information",
+    "creationDate": "2024-09-20"
+  },
+  {
+    "id": 53,
+    "header": "Network Security Measures",
+    "description": "Network protection and security protocols.",
+    "type": "Task",
+    "creationDate": "2025-02-05"
+  },
+  {
+    "id": 54,
+    "header": "Project Timeline",
+    "description": "Detailed project schedule and milestones.",
+    "type": "Project",
+    "creationDate": "2024-09-18"
+  },
+  {
+    "id": 55,
+    "header": "Resource Allocation",
+    "description": "Distribution of resources across project phases.",
+    "type": "Project",
+    "creationDate": "2025-02-08"
+  },
+  {
+    "id": 56,
+    "header": "Team Structure and Roles",
+    "description": "Organizational structure and role definitions.",
+    "type": "Project",
+    "creationDate": "2024-09-15"
+  },
+  {
+    "id": 57,
+    "header": "Communication Protocols",
+    "description": "Internal and external communication guidelines.",
+    "type": "Project",
+    "creationDate": "2025-02-10"
+  },
+  {
+    "id": 58,
+    "header": "Success Metrics",
+    "description": "Criteria for measuring project success.",
+    "type": "Information",
+    "creationDate": "2024-09-12"
+  },
+  {
+    "id": 59,
+    "header": "Internationalization Support",
+    "description": "Multi-language and cultural adaptation features.",
+    "type": "Task",
+    "creationDate": "2025-02-12"
+  },
+  {
+    "id": 60,
+    "header": "Backup and Recovery Procedures",
+    "description": "Data backup strategies and recovery processes.",
+    "type": "Task",
+    "creationDate": "2024-09-10"
+  },
+  {
+    "id": 61,
+    "header": "Monitoring and Alerting System",
+    "description": "System monitoring and automated alert configuration.",
+    "type": "Task",
+    "creationDate": "2025-02-15"
+  },
+  {
+    "id": 62,
+    "header": "Code Review Guidelines",
+    "description": "Standards and procedures for code review.",
+    "type": "Information",
+    "creationDate": "2024-09-08"
+  },
+  {
+    "id": 63,
+    "header": "Documentation Standards",
+    "description": "Guidelines for technical and user documentation.",
+    "type": "Task",
+    "creationDate": "2025-02-18"
+  },
+  {
+    "id": 64,
+    "header": "Release Management Process",
+    "description": "Procedures for managing software releases.",
+    "type": "Project",
+    "creationDate": "2024-09-05"
+  },
+  {
+    "id": 65,
+    "header": "Feature Prioritization Matrix",
+    "description": "Framework for prioritizing feature development.",
+    "type": "Project",
+    "creationDate": "2025-02-20"
+  },
+  {
+    "id": 66,
+    "header": "Technical Debt Assessment",
+    "description": "Evaluation of technical debt and remediation plans.",
+    "type": "Information",
+    "creationDate": "2024-09-03"
+  },
+  {
+    "id": 67,
+    "header": "Capacity Planning",
+    "description": "Resource capacity analysis and planning.",
+    "type": "Project",
+    "creationDate": "2025-02-22"
+  },
+  {
+    "id": 68,
+    "header": "Service Level Agreements",
+    "description": "SLA definitions and performance commitments.",
+    "type": "Information",
+    "creationDate": "2024-09-01"
+  }
+]
