@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useRouter, usePathname } from "next/navigation"
 import { DepartmentsView } from "@/components/departments-view"
 import { DepartmentsHierarchyView } from "@/components/departments-hierarchy-view"
 import { EmployeesTable } from "@/components/employees-table"
@@ -13,11 +14,19 @@ import { IconPlus, IconSearch } from "@tabler/icons-react"
 import { Input } from "@/components/ui/input"
 
 const filters = [
-  { id: "departments", label: "Отделы" },
-  { id: "employees", label: "Сотрудники" },
-  { id: "salary", label: "Зарплата" },
-  { id: "timesheet", label: "Табель" },
+  { id: "departments", label: "Отделы", path: "struktura" },
+  { id: "employees", label: "Сотрудники", path: "sotrudniki" },
+  { id: "salary", label: "Зарплата", path: "zarplata" },
+  { id: "timesheet", label: "Табель", path: "tabel" },
 ]
+
+// Маппинг пути к filter id
+const pathToFilterMap: Record<string, string> = {
+  struktura: "departments",
+  sotrudniki: "employees",
+  zarplata: "salary",
+  tabel: "timesheet",
+}
 
 const mockDepartments: Department[] = [
   { id: "1", name: "Руководство", type: "Управление", employeeCount: 3, parentId: null, order: 0 },
@@ -72,10 +81,35 @@ const mockEmployees: Employee[] = [
 ]
 
 export function HRContent() {
+  const router = useRouter()
+  const pathname = usePathname()
   const { selectedDepartment, setSelectedDepartment } = useNavigation()
   const { toast } = useToast()
-  const [activeFilter, setActiveFilter] = React.useState("departments")
+  
+  // Определяем активный фильтр на основе URL
+  const getActiveFilterFromPath = React.useCallback(() => {
+    const pathSegments = pathname.split("/")
+    const lastSegment = pathSegments[pathSegments.length - 1]
+    return pathToFilterMap[lastSegment] || "departments"
+  }, [pathname])
+  
+  const [activeFilter, setActiveFilter] = React.useState(() => getActiveFilterFromPath())
   const [searchQuery, setSearchQuery] = React.useState("")
+  
+  // Обновляем activeFilter при изменении URL
+  React.useEffect(() => {
+    const filterFromPath = getActiveFilterFromPath()
+    if (filterFromPath !== activeFilter) {
+      setActiveFilter(filterFromPath)
+    }
+  }, [pathname, getActiveFilterFromPath, activeFilter])
+  
+  // Перенаправляем на /hr/struktura если пользователь на /hr
+  React.useEffect(() => {
+    if (pathname === "/hr" || pathname === "/hr/") {
+      router.replace("/hr/struktura")
+    }
+  }, [pathname, router])
 
   const [departments, setDepartments] = React.useState<Department[]>(mockDepartments)
   const [employees, setEmployees] = React.useState<Employee[]>(mockEmployees)
@@ -354,7 +388,8 @@ export function HRContent() {
             <button
               key={filter.id}
               onClick={() => {
-                setActiveFilter(filter.id)
+                const newPath = `/hr/${filter.path}`
+                router.push(newPath)
                 setSearchQuery("")
                 setSelectedDepartment(null)
               }}
