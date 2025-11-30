@@ -270,10 +270,19 @@ export function HRContent() {
           onEditDepartment={handleEditDepartment}
           onDeleteDepartment={handleDeleteDepartment}
           onOrderChange={handleOrderChange}
-          onAddSubDepartment={(parentId) => {
-            setNewDepartmentParentId(parentId)
-            setEditingDepartment(null)
-            setDepartmentDialogOpen(true)
+          onAddSubDepartment={(parentId, childId) => {
+            // Устанавливаем parentId для выбранного отдела
+            const childDept = departments.find((d) => d.id === childId)
+            if (childDept) {
+              const updatedDepartments = departments.map((d) =>
+                d.id === childId ? { ...d, parentId: parentId } : d
+              )
+              setDepartments(updatedDepartments)
+              toast({
+                title: "Подотдел добавлен",
+                description: `Отдел "${childDept.name}" теперь подчинен выбранному отделу`,
+              })
+            }
           }}
         />
       )

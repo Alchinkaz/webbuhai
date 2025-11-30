@@ -24,6 +24,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter, CardAction } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { Department } from "@/components/department-dialog"
 import type { Employee } from "@/components/employee-dialog"
 
@@ -35,7 +38,7 @@ interface DepartmentsHierarchyViewProps {
   onEditDepartment: (department: Department) => void
   onDeleteDepartment: (id: string) => void
   onOrderChange: (departments: Department[]) => void
-  onAddSubDepartment?: (parentId: string) => void
+  onAddSubDepartment?: (parentId: string, childId: string) => void
 }
 
 interface DepartmentCardProps {
@@ -49,6 +52,7 @@ interface DepartmentCardProps {
   onAddSubDepartment?: (parentId: string) => void
   isDragging?: boolean
   hasChildren: boolean
+  availableDepartments?: Department[]
 }
 
 function DepartmentCard({
@@ -62,15 +66,34 @@ function DepartmentCard({
   onAddSubDepartment,
   isDragging = false,
   hasChildren,
+  availableDepartments = [],
 }: DepartmentCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging: isSortableDragging } = useSortable({
     id: department.id,
   })
 
+  const [selectDialogOpen, setSelectDialogOpen] = React.useState(false)
+  const [selectedDepartmentId, setSelectedDepartmentId] = React.useState<string>("")
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isSortableDragging ? 0.5 : 1,
+  }
+
+  // Фильтруем доступные отделы (исключаем текущий и уже являющиеся подотделами)
+  const availableDepts = React.useMemo(() => {
+    return availableDepartments.filter(
+      (d) => d.id !== department.id && d.parentId !== department.id
+    )
+  }, [availableDepartments, department.id])
+
+  const handleSelectDepartment = () => {
+    if (selectedDepartmentId && onAddSubDepartment) {
+      onAddSubDepartment(department.id, selectedDepartmentId)
+      setSelectDialogOpen(false)
+      setSelectedDepartmentId("")
+    }
   }
 
   return (
@@ -158,17 +181,62 @@ function DepartmentCard({
 
       {/* Кнопка добавления подотдела (синий +) */}
       {onAddSubDepartment && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute -bottom-3 left-1/2 -translate-x-1/2 h-5 w-5 rounded-full bg-blue-500 hover:bg-blue-600 text-white border-2 border-background shadow-md z-10"
-          onClick={(e) => {
-            e.stopPropagation()
-            onAddSubDepartment(department.id)
-          }}
-        >
-          <IconPlus className="h-3 w-3" />
-        </Button>
+        <>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute -bottom-3 left-1/2 -translate-x-1/2 h-5 w-5 rounded-full bg-blue-500 hover:bg-blue-600 text-white border-2 border-background shadow-md z-10"
+            onClick={(e) => {
+              e.stopPropagation()
+              setSelectDialogOpen(true)
+            }}
+          >
+            <IconPlus className="h-3 w-3" />
+          </Button>
+
+          {/* Диалог выбора отдела */}
+          <Dialog open={selectDialogOpen} onOpenChange={setSelectDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Выбрать подотдел</DialogTitle>
+                <DialogDescription>
+                  Выберите отдел, который будет подчинен отделу "{department.name}"
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="department-select">Отдел</Label>
+                  <Select value={selectedDepartmentId} onValueChange={setSelectedDepartmentId}>
+                    <SelectTrigger id="department-select">
+                      <SelectValue placeholder="Выберите отдел" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableDepts.length > 0 ? (
+                        availableDepts.map((dept) => (
+                          <SelectItem key={dept.id} value={dept.id}>
+                            {dept.name}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="" disabled>
+                          Нет доступных отделов
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setSelectDialogOpen(false)}>
+                  Отмена
+                </Button>
+                <Button type="button" onClick={handleSelectDepartment} disabled={!selectedDepartmentId}>
+                  Выбрать
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </>
       )}
 
       {/* Иконка для drag */}
@@ -194,8 +262,9 @@ interface TreeNodeProps {
   onDepartmentClick: (department: Department) => void
   onEditDepartment: (department: Department) => void
   onDeleteDepartment: (id: string) => void
-  onAddSubDepartment?: (parentId: string) => void
+  onAddSubDepartment?: (parentId: string, childId: string) => void
   activeId: string | null
+  availableDepartments?: Department[]
 }
 
 function TreeNode({
@@ -210,6 +279,7 @@ function TreeNode({
   onDeleteDepartment,
   onAddSubDepartment,
   activeId,
+  availableDepartments = [],
 }: TreeNodeProps) {
   const children = React.useMemo(() => {
     return departments
@@ -236,6 +306,7 @@ function TreeNode({
           onAddSubDepartment={onAddSubDepartment}
           isDragging={activeId === department.id}
           hasChildren={hasChildren}
+          availableDepartments={availableDepartments}
         />
 
         {/* Вертикальная линия вниз от карточки, если есть дети */}
@@ -296,6 +367,7 @@ function TreeNode({
                     onDeleteDepartment={onDeleteDepartment}
                     onAddSubDepartment={onAddSubDepartment}
                     activeId={activeId}
+                    availableDepartments={availableDepartments}
                   />
                 </div>
               </div>
@@ -425,6 +497,7 @@ export function DepartmentsHierarchyView({
                   onDeleteDepartment={onDeleteDepartment}
                   onAddSubDepartment={onAddSubDepartment}
                   activeId={activeId}
+                  availableDepartments={filteredDepartments}
                 />
               ))
             ) : (
