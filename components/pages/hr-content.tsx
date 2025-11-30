@@ -85,6 +85,7 @@ export function HRContent() {
   const [departmentDialogOpen, setDepartmentDialogOpen] = React.useState(false)
   const [editingEmployee, setEditingEmployee] = React.useState<Employee | null>(null)
   const [editingDepartment, setEditingDepartment] = React.useState<Department | null>(null)
+  const [newDepartmentParentId, setNewDepartmentParentId] = React.useState<string | null>(null)
 
   const departmentsWithCounts = React.useMemo(() => {
     return departments.map((dept) => ({
@@ -129,13 +130,15 @@ export function HRContent() {
   }
 
   const handleAddDepartment = (department: Omit<Department, "id" | "employeeCount">) => {
-    if (editingDepartment) {
+    if (editingDepartment && editingDepartment.id) {
       setDepartments(departments.map((d) => (d.id === editingDepartment.id ? { ...d, ...department } : d)))
       setEditingDepartment(null)
     } else {
-      const maxOrder = Math.max(...departments.filter((d) => d.parentId === department.parentId).map((d) => d.order ?? 0), -1)
+      const parentId = newDepartmentParentId || department.parentId || null
+      const maxOrder = Math.max(...departments.filter((d) => d.parentId === parentId).map((d) => d.order ?? 0), -1)
       const newDepartment: Department = {
         ...department,
+        parentId: parentId,
         id: Date.now().toString(),
         employeeCount: 0,
         order: maxOrder + 1,
@@ -143,9 +146,11 @@ export function HRContent() {
       setDepartments([...departments, newDepartment])
     }
     setDepartmentDialogOpen(false)
+    setNewDepartmentParentId(null)
+    setEditingDepartment(null)
     toast({
-      title: editingDepartment ? "Отдел обновлен" : "Отдел добавлен",
-      description: editingDepartment ? "Информация об отделе успешно обновлена" : "Новый отдел успешно добавлен",
+      title: editingDepartment && editingDepartment.id ? "Отдел обновлен" : "Отдел добавлен",
+      description: editingDepartment && editingDepartment.id ? "Информация об отделе успешно обновлена" : "Новый отдел успешно добавлен",
     })
   }
 
@@ -203,6 +208,7 @@ export function HRContent() {
   const closeDepartmentDialog = () => {
     setDepartmentDialogOpen(false)
     setEditingDepartment(null)
+    setNewDepartmentParentId(null)
   }
 
   const getPlaceholder = () => {
@@ -259,10 +265,16 @@ export function HRContent() {
         <DepartmentsHierarchyView
           searchQuery={searchQuery}
           departments={departmentsWithCounts}
+          employees={employees}
           onDepartmentClick={handleDepartmentClick}
           onEditDepartment={handleEditDepartment}
           onDeleteDepartment={handleDeleteDepartment}
           onOrderChange={handleOrderChange}
+          onAddSubDepartment={(parentId) => {
+            setNewDepartmentParentId(parentId)
+            setEditingDepartment(null)
+            setDepartmentDialogOpen(true)
+          }}
         />
       )
     } else if (activeFilter === "employees") {
@@ -360,6 +372,7 @@ export function HRContent() {
         onSubmit={handleAddDepartment}
         department={editingDepartment}
         departments={departments}
+        defaultParentId={newDepartmentParentId}
       />
     </div>
   )

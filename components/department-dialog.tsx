@@ -29,9 +29,10 @@ type DepartmentDialogProps = {
   onSubmit: (department: Omit<Department, "id" | "employeeCount">) => void
   department?: Department | null
   departments?: Department[]
+  defaultParentId?: string | null
 }
 
-export function DepartmentDialog({ open, onOpenChange, onSubmit, department, departments = [] }: DepartmentDialogProps) {
+export function DepartmentDialog({ open, onOpenChange, onSubmit, department, departments = [], defaultParentId }: DepartmentDialogProps) {
   const [name, setName] = React.useState("")
   const [type, setType] = React.useState("")
   const [parentId, setParentId] = React.useState<string | null>(null)
@@ -44,9 +45,9 @@ export function DepartmentDialog({ open, onOpenChange, onSubmit, department, dep
     } else {
       setName("")
       setType("")
-      setParentId(null)
+      setParentId(defaultParentId || null)
     }
-  }, [department, open])
+  }, [department, open, defaultParentId])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
