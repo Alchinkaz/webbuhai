@@ -49,6 +49,9 @@ export function DepartmentDialog({ open, onOpenChange, onSubmit, department, dep
     }
   }, [department, open, defaultParentId])
 
+  // Преобразуем parentId для Select (null -> "none")
+  const selectParentId = parentId || "none"
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     onSubmit({ name, type, parentId: parentId || null })
@@ -92,7 +95,7 @@ export function DepartmentDialog({ open, onOpenChange, onSubmit, department, dep
             </div>
             <div className="grid gap-2">
               <Label htmlFor="parentId">Родительский отдел</Label>
-              <Select value={parentId || "none"} onValueChange={(value) => setParentId(value === "none" ? null : value)}>
+              <Select value={selectParentId} onValueChange={(value) => setParentId(value === "none" ? null : value)}>
                 <SelectTrigger id="parentId">
                   <SelectValue placeholder="Без родительского отдела" />
                 </SelectTrigger>
