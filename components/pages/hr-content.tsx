@@ -16,7 +16,6 @@ const filters = [
   { id: "departments", label: "Отделы" },
   { id: "employees", label: "Сотрудники" },
   { id: "salary", label: "Зарплата" },
-  { id: "taxes", label: "Налоги" },
   { id: "timesheet", label: "Табель" },
 ]
 
@@ -252,8 +251,6 @@ export function HRContent() {
         return "Поиск сотрудников..."
       case "salary":
         return "Поиск по зарплате..."
-      case "taxes":
-        return "Поиск по налогам..."
       case "timesheet":
         return "Поиск в табеле..."
       default:
@@ -336,13 +333,6 @@ export function HRContent() {
         <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
           <p className="text-lg font-medium">Раздел в разработке</p>
           <p className="text-sm">Управление зарплатами скоро будет доступно</p>
-        </div>
-      )
-    } else if (activeFilter === "taxes") {
-      return (
-        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-          <p className="text-lg font-medium">Раздел в разработке</p>
-          <p className="text-sm">Управление налогами скоро будет доступно</p>
         </div>
       )
     } else if (activeFilter === "timesheet") {
