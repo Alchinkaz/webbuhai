@@ -131,11 +131,25 @@ export function HRContent() {
 
   const handleAddDepartment = (department: Omit<Department, "id" | "employeeCount">) => {
     if (editingDepartment && editingDepartment.id) {
-      setDepartments(departments.map((d) => (d.id === editingDepartment.id ? { ...d, ...department } : d)))
+      // Редактирование существующего отдела
+      const updatedDepartments = departments.map((d) => 
+        d.id === editingDepartment.id 
+          ? { ...d, ...department, parentId: department.parentId || null }
+          : d
+      )
+      setDepartments(updatedDepartments)
       setEditingDepartment(null)
+      toast({
+        title: "Отдел обновлен",
+        description: "Информация об отделе успешно обновлена",
+      })
     } else {
+      // Создание нового отдела
       const parentId = newDepartmentParentId || department.parentId || null
-      const maxOrder = Math.max(...departments.filter((d) => d.parentId === parentId).map((d) => d.order ?? 0), -1)
+      const siblings = departments.filter((d) => d.parentId === parentId)
+      const maxOrder = siblings.length > 0 
+        ? Math.max(...siblings.map((d) => d.order ?? 0), -1)
+        : -1
       const newDepartment: Department = {
         ...department,
         parentId: parentId,
@@ -144,14 +158,14 @@ export function HRContent() {
         order: maxOrder + 1,
       }
       setDepartments([...departments, newDepartment])
+      toast({
+        title: "Отдел добавлен",
+        description: "Новый отдел успешно добавлен",
+      })
     }
     setDepartmentDialogOpen(false)
     setNewDepartmentParentId(null)
     setEditingDepartment(null)
-    toast({
-      title: editingDepartment && editingDepartment.id ? "Отдел обновлен" : "Отдел добавлен",
-      description: editingDepartment && editingDepartment.id ? "Информация об отделе успешно обновлена" : "Новый отдел успешно добавлен",
-    })
   }
 
   const handleOrderChange = (reorderedDepartments: Department[]) => {
@@ -171,10 +185,11 @@ export function HRContent() {
   }
 
   const handleDeleteDepartment = (id: string) => {
-    const departmentEmployees = employees.filter((e) => {
-      const dept = departments.find((d) => d.id === id)
-      return dept && e.department === dept.name
-    })
+    const dept = departments.find((d) => d.id === id)
+    if (!dept) return
+
+    // Проверяем наличие сотрудников
+    const departmentEmployees = employees.filter((e) => e.department === dept.name)
     if (departmentEmployees.length > 0) {
       toast({
         title: "Невозможно удалить отдел",
@@ -183,7 +198,24 @@ export function HRContent() {
       })
       return
     }
-    setDepartments(departments.filter((d) => d.id !== id))
+
+    // Проверяем наличие подотделов
+    const subDepartments = departments.filter((d) => d.parentId === id)
+    if (subDepartments.length > 0) {
+      toast({
+        title: "Невозможно удалить отдел",
+        description: "В отделе есть подотделы. Сначала удалите или переместите их.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Удаляем отдел и обновляем parentId у дочерних отделов (на случай если они есть)
+    const updatedDepartments = departments
+      .filter((d) => d.id !== id)
+      .map((d) => (d.parentId === id ? { ...d, parentId: null } : d))
+    
+    setDepartments(updatedDepartments)
     toast({
       title: "Отдел удален",
       description: "Отдел успешно удален из системы",
@@ -283,6 +315,11 @@ export function HRContent() {
                 description: `Отдел "${childDept.name}" теперь подчинен выбранному отделу`,
               })
             }
+          }}
+          onCreateNewSubDepartment={(parentId) => {
+            setNewDepartmentParentId(parentId)
+            setEditingDepartment(null)
+            setDepartmentDialogOpen(true)
           }}
         />
       )
