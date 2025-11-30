@@ -103,13 +103,6 @@ export function HRContent() {
       setActiveFilter(filterFromPath)
     }
   }, [pathname, getActiveFilterFromPath, activeFilter])
-  
-  // Перенаправляем на /hr/struktura если пользователь на /hr
-  React.useEffect(() => {
-    if (pathname === "/hr" || pathname === "/hr/") {
-      router.replace("/hr/struktura")
-    }
-  }, [pathname, router])
 
   const [departments, setDepartments] = React.useState<Department[]>(mockDepartments)
   const [employees, setEmployees] = React.useState<Employee[]>(mockEmployees)
