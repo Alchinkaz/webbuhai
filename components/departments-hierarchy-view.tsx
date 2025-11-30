@@ -86,9 +86,14 @@ function DepartmentCard({
 
   // Фильтруем доступные отделы (исключаем текущий и уже являющиеся подотделами)
   const availableDepts = React.useMemo(() => {
-    return availableDepartments.filter(
-      (d) => d.id !== department.id && d.parentId !== department.id && !d.parentId
-    )
+    return availableDepartments.filter((d) => {
+      // Исключаем сам отдел
+      if (d.id === department.id) return false
+      // Исключаем отделы, которые уже являются подотделами текущего отдела
+      if (d.parentId === department.id) return false
+      // Включаем только отделы без родителя (корневые), которые можно сделать подотделами
+      return !d.parentId
+    })
   }, [availableDepartments, department.id])
 
   const handleSelectDepartment = () => {
@@ -457,7 +462,7 @@ export function DepartmentsHierarchyView({
     })
     
     return filtered
-      .filter((d) => !d.parentId)
+      .filter((d) => !d.parentId || d.parentId === null || d.parentId === undefined)
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
   }, [departments, searchQuery])
 

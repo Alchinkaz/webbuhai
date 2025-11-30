@@ -210,10 +210,8 @@ export function HRContent() {
       return
     }
 
-    // Удаляем отдел и обновляем parentId у дочерних отделов (на случай если они есть)
-    const updatedDepartments = departments
-      .filter((d) => d.id !== id)
-      .map((d) => (d.parentId === id ? { ...d, parentId: null } : d))
+    // Удаляем отдел
+    const updatedDepartments = departments.filter((d) => d.id !== id)
     
     setDepartments(updatedDepartments)
     toast({
