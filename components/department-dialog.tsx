@@ -92,12 +92,12 @@ export function DepartmentDialog({ open, onOpenChange, onSubmit, department, dep
             </div>
             <div className="grid gap-2">
               <Label htmlFor="parentId">Родительский отдел</Label>
-              <Select value={parentId || ""} onValueChange={(value) => setParentId(value || null)}>
+              <Select value={parentId || "none"} onValueChange={(value) => setParentId(value === "none" ? null : value)}>
                 <SelectTrigger id="parentId">
                   <SelectValue placeholder="Без родительского отдела" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Без родительского отдела</SelectItem>
+                  <SelectItem value="none">Без родительского отдела</SelectItem>
                   {availableDepartments.map((dept) => (
                     <SelectItem key={dept.id} value={dept.id}>
                       {dept.name}
