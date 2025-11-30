@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { DepartmentsView } from "@/components/departments-view"
+import { DepartmentsHierarchyView } from "@/components/departments-hierarchy-view"
 import { EmployeesTable } from "@/components/employees-table"
 import { EmployeeDialog, type Employee } from "@/components/employee-dialog"
 import { DepartmentDialog, type Department } from "@/components/department-dialog"
@@ -20,12 +21,12 @@ const filters = [
 ]
 
 const mockDepartments: Department[] = [
-  { id: "1", name: "Руководство", type: "Управление", employeeCount: 3 },
-  { id: "2", name: "Бухгалтерия", type: "Финансы", employeeCount: 5 },
-  { id: "3", name: "Продажи", type: "Коммерческий", employeeCount: 8 },
-  { id: "4", name: "Кадры", type: "HR", employeeCount: 2 },
-  { id: "5", name: "IT-отдел", type: "Техническая поддержка", employeeCount: 4 },
-  { id: "6", name: "Маркетинг", type: "Коммерческий", employeeCount: 6 },
+  { id: "1", name: "Руководство", type: "Управление", employeeCount: 3, parentId: null, order: 0 },
+  { id: "2", name: "Бухгалтерия", type: "Финансы", employeeCount: 5, parentId: "1", order: 0 },
+  { id: "3", name: "Продажи", type: "Коммерческий", employeeCount: 8, parentId: "1", order: 1 },
+  { id: "4", name: "Кадры", type: "HR", employeeCount: 2, parentId: "1", order: 2 },
+  { id: "5", name: "IT-отдел", type: "Техническая поддержка", employeeCount: 4, parentId: "1", order: 3 },
+  { id: "6", name: "Маркетинг", type: "Коммерческий", employeeCount: 6, parentId: "3", order: 0 },
 ]
 
 const mockEmployees: Employee[] = [
@@ -132,10 +133,12 @@ export function HRContent() {
       setDepartments(departments.map((d) => (d.id === editingDepartment.id ? { ...d, ...department } : d)))
       setEditingDepartment(null)
     } else {
+      const maxOrder = Math.max(...departments.filter((d) => d.parentId === department.parentId).map((d) => d.order ?? 0), -1)
       const newDepartment: Department = {
         ...department,
         id: Date.now().toString(),
         employeeCount: 0,
+        order: maxOrder + 1,
       }
       setDepartments([...departments, newDepartment])
     }
@@ -143,6 +146,14 @@ export function HRContent() {
     toast({
       title: editingDepartment ? "Отдел обновлен" : "Отдел добавлен",
       description: editingDepartment ? "Информация об отделе успешно обновлена" : "Новый отдел успешно добавлен",
+    })
+  }
+
+  const handleOrderChange = (reorderedDepartments: Department[]) => {
+    setDepartments(reorderedDepartments)
+    toast({
+      title: "Порядок обновлен",
+      description: "Иерархия отделов успешно обновлена",
     })
   }
 
@@ -245,12 +256,13 @@ export function HRContent() {
 
     if (activeFilter === "departments") {
       return (
-        <DepartmentsView
+        <DepartmentsHierarchyView
           searchQuery={searchQuery}
           departments={departmentsWithCounts}
           onDepartmentClick={handleDepartmentClick}
           onEditDepartment={handleEditDepartment}
           onDeleteDepartment={handleDeleteDepartment}
+          onOrderChange={handleOrderChange}
         />
       )
     } else if (activeFilter === "employees") {
@@ -347,6 +359,7 @@ export function HRContent() {
         onOpenChange={closeDepartmentDialog}
         onSubmit={handleAddDepartment}
         department={editingDepartment}
+        departments={departments}
       />
     </div>
   )
