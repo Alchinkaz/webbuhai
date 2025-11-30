@@ -416,6 +416,7 @@ export function HRContent() {
         onSubmit={handleAddDepartment}
         department={editingDepartment}
         departments={departments}
+        employees={employees}
         defaultParentId={newDepartmentParentId}
       />
     </div>
