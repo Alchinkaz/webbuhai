@@ -3,7 +3,6 @@
 import * as React from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { DepartmentsView } from "@/components/departments-view"
-import { DepartmentsHierarchyView } from "@/components/departments-hierarchy-view"
 import { EmployeesTable } from "@/components/employees-table"
 import { EmployeeDialog, type Employee } from "@/components/employee-dialog"
 import { DepartmentDialog, type Department } from "@/components/department-dialog"
@@ -194,13 +193,6 @@ export function HRContent() {
     setEditingDepartment(null)
   }
 
-  const handleOrderChange = (reorderedDepartments: Department[]) => {
-    setDepartments(reorderedDepartments)
-    toast({
-      title: "Порядок обновлен",
-      description: "Иерархия отделов успешно обновлена",
-    })
-  }
 
   const handleDeleteEmployee = (id: string) => {
     setEmployees(employees.filter((e) => e.id !== id))
@@ -316,33 +308,12 @@ export function HRContent() {
 
     if (activeFilter === "departments") {
       return (
-        <DepartmentsHierarchyView
+        <DepartmentsView
           searchQuery={searchQuery}
           departments={departmentsWithCounts}
-          employees={employees}
           onDepartmentClick={handleDepartmentClick}
           onEditDepartment={handleEditDepartment}
           onDeleteDepartment={handleDeleteDepartment}
-          onOrderChange={handleOrderChange}
-          onAddSubDepartment={(parentId, childId) => {
-            // Устанавливаем parentId для выбранного отдела
-            const childDept = departments.find((d) => d.id === childId)
-            if (childDept) {
-              const updatedDepartments = departments.map((d) =>
-                d.id === childId ? { ...d, parentId: parentId } : d
-              )
-              setDepartments(updatedDepartments)
-              toast({
-                title: "Подотдел добавлен",
-                description: `Отдел "${childDept.name}" теперь подчинен выбранному отделу`,
-              })
-            }
-          }}
-          onCreateNewSubDepartment={(parentId) => {
-            setNewDepartmentParentId(parentId)
-            setEditingDepartment(null)
-            setDepartmentDialogOpen(true)
-          }}
         />
       )
     } else if (activeFilter === "employees") {
