@@ -7,8 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react"
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isWeekend, isToday, isSameMonth } from "date-fns"
-
-type AttendanceCode = "8" | "4" | "Н" | "У" | "О" | "Б" | "clear"
+import { ATTENDANCE_CODE, type AttendanceCode } from "./attendance-codes"
 
 interface TimesheetData {
   [employeeId: string]: {
@@ -29,13 +28,13 @@ interface TimesheetTableProps {
 const dayNames = ["вс", "пн", "вт", "ср", "чт", "пт", "сб"]
 
 const attendanceOptions: { value: AttendanceCode; label: string; description: string }[] = [
-  { value: "8", label: "8", description: "Полный день (8 часов)" },
-  { value: "4", label: "4", description: "Неполный день (4 часа)" },
-  { value: "Н", label: "Н", description: "Отсутствовал" },
-  { value: "У", label: "У", description: "Уволен" },
-  { value: "О", label: "О", description: "Отпуск" },
-  { value: "Б", label: "Б", description: "Болел" },
-  { value: "clear", label: "—", description: "Очистить" },
+  { value: ATTENDANCE_CODE.FULL_DAY, label: "8", description: "Полный день (8 часов)" },
+  { value: ATTENDANCE_CODE.HALF_DAY, label: "4", description: "Неполный день (4 часа)" },
+  { value: ATTENDANCE_CODE.ABSENT, label: "Н", description: "Отсутствовал" },
+  { value: ATTENDANCE_CODE.DISMISSED, label: "У", description: "Уволен" },
+  { value: ATTENDANCE_CODE.VACATION, label: "О", description: "Отпуск" },
+  { value: ATTENDANCE_CODE.SICK, label: "Б", description: "Болел" },
+  { value: ATTENDANCE_CODE.CLEAR, label: "—", description: "Очистить" },
 ]
 
 export function TimesheetTable({ employees }: TimesheetTableProps) {
@@ -58,7 +57,7 @@ export function TimesheetTable({ employees }: TimesheetTableProps) {
       if (!newData[employeeId]) {
         newData[employeeId] = {}
       }
-      if (value === "clear") {
+      if (value === ATTENDANCE_CODE.CLEAR) {
         const { [date]: _, ...rest } = newData[employeeId]
         newData[employeeId] = rest
         if (Object.keys(newData[employeeId]).length === 0) {
@@ -93,12 +92,12 @@ export function TimesheetTable({ employees }: TimesheetTableProps) {
   const getCodeDescription = (code: AttendanceCode | ""): string => {
     if (!code) return ""
     const descriptions: Record<string, string> = {
-      "8": "Полный день (8 часов)",
-      "4": "Неполный день (4 часа)",
-      "Н": "Отсутствовал",
-      "У": "Уволен",
-      "О": "Отпуск",
-      "Б": "Болел",
+      [ATTENDANCE_CODE.FULL_DAY]: "Полный день (8 часов)",
+      [ATTENDANCE_CODE.HALF_DAY]: "Неполный день (4 часа)",
+      [ATTENDANCE_CODE.ABSENT]: "Отсутствовал",
+      [ATTENDANCE_CODE.DISMISSED]: "Уволен",
+      [ATTENDANCE_CODE.VACATION]: "Отпуск",
+      [ATTENDANCE_CODE.SICK]: "Болел",
     }
     return descriptions[code] || ""
   }
