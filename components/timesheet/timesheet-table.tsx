@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react"
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isWeekend } from "date-fns"
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isWeekend, isToday, isSameMonth } from "date-fns"
 
 type AttendanceCode = "8" | "4" | "Н" | "У" | "О" | "Б" | "clear"
 
@@ -31,6 +31,7 @@ const dayNames = ["вс", "пн", "вт", "ср", "чт", "пт", "сб"]
 export function TimesheetTable({ employees }: TimesheetTableProps) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [timesheetData, setTimesheetData] = useState<TimesheetData>({})
+  const today = new Date()
 
   const monthStart = startOfMonth(currentDate)
   const monthEnd = endOfMonth(currentDate)
@@ -133,13 +134,22 @@ export function TimesheetTable({ employees }: TimesheetTableProps) {
                 {daysInMonth.map((day) => {
                   const dayOfWeek = getDay(day)
                   const isWeekendDay = isWeekend(day)
+                  const isTodayDate = isToday(day) && isSameMonth(day, currentDate)
                   return (
                     <TableHead
                       key={day.toISOString()}
-                      className={`min-w-[60px] text-center ${isWeekendDay ? "bg-yellow-50 dark:bg-yellow-950/20" : ""}`}
+                      className={`min-w-[60px] text-center ${
+                        isTodayDate 
+                          ? "bg-blue-100 dark:bg-blue-950/30 border-2 border-blue-500" 
+                          : isWeekendDay 
+                          ? "bg-yellow-50 dark:bg-yellow-950/20" 
+                          : ""
+                      }`}
                     >
                       <div className="flex flex-col">
-                        <span className="text-xs font-normal">{format(day, "dd")}</span>
+                        <span className={`text-xs font-normal ${isTodayDate ? "font-bold text-blue-700 dark:text-blue-300" : ""}`}>
+                          {format(day, "dd")}
+                        </span>
                         <span className="text-xs text-muted-foreground">{dayNames[dayOfWeek]}</span>
                       </div>
                     </TableHead>
@@ -157,11 +167,18 @@ export function TimesheetTable({ employees }: TimesheetTableProps) {
                     {daysInMonth.map((day) => {
                       const dateStr = format(day, "yyyy-MM-dd")
                       const isWeekendDay = isWeekend(day)
+                      const isTodayDate = isToday(day) && isSameMonth(day, currentDate)
                       const value = getCellValue(employee.id, dateStr)
                       return (
                         <TableCell
                           key={dateStr}
-                          className={`p-1 ${isWeekendDay ? "bg-yellow-50 dark:bg-yellow-950/20" : ""}`}
+                          className={`p-1 ${
+                            isTodayDate 
+                              ? "bg-blue-100 dark:bg-blue-950/30 border-2 border-blue-500" 
+                              : isWeekendDay 
+                              ? "bg-yellow-50 dark:bg-yellow-950/20" 
+                              : ""
+                          }`}
                         >
                           <Select
                             value={value || undefined}
