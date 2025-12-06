@@ -83,7 +83,8 @@ export function TemplateUpload({ onClose, onComplete, documentType }: TemplateUp
             <div>
               <CardTitle className="text-2xl">Загрузить шаблон</CardTitle>
               <CardDescription className="mt-2">
-                Загрузите Word документ с переменными в формате {"{{имя_переменной}}"}
+                Загрузите Word документ с переменными в формате {"{{имя_переменной}}"}. Шаблон будет сохранен постоянно
+                и доступен на всех устройствах.
               </CardDescription>
             </div>
             <Button variant="ghost" size="icon" onClick={onClose}>

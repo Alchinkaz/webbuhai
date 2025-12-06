@@ -2,9 +2,8 @@
 
 import { useState } from "react"
 import { useFinance } from "@/lib/finance-context"
-import { calculateDashboardMetrics, formatCurrency, getMonthlyData, getCategoryExpenses } from "@/lib/finance-utils"
+import { calculateDashboardMetrics, formatCurrency } from "@/lib/finance-utils"
 import { MetricCard } from "@/components/finance/metric-card"
-import { CategoryExpensesChart, MonthlyRevenueChart, ProfitChart } from "@/components/finance/dashboard-charts"
 import { TransactionList } from "@/components/finance/transaction-list"
 import { TransactionForm } from "@/components/finance/transaction-form"
 import { AccountCard } from "@/components/finance/account-card"
@@ -25,8 +24,7 @@ const tabs = [
 
 export function FinanceContent() {
   const [activeTab, setActiveTab] = useState("analytics")
-  const [bankSubTab, setBankSubTab] = useState("expense")
-  const { transactions, invoices, accounts, categories } = useFinance()
+  const { transactions, invoices, accounts } = useFinance()
 
   const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false)
   const [isAccountDialogOpen, setIsAccountDialogOpen] = useState(false)
@@ -39,26 +37,11 @@ export function FinanceContent() {
   const [endDate, setEndDate] = useState(lastDayOfMonth.toISOString().split("T")[0])
 
   const metrics = calculateDashboardMetrics(transactions, invoices, accounts, startDate, endDate)
-  const monthlyData = getMonthlyData(transactions, invoices, 6)
-  const categoryExpenses = getCategoryExpenses(transactions, categories)
 
   const totalBalance = accounts.reduce((sum, account) => sum + account.balance, 0)
 
   const getTransactionCount = (accountId: string) => {
     return transactions.filter((t) => t.accountId === accountId).length
-  }
-
-  const handleExport = () => {
-    const data = {
-      period: { startDate, endDate },
-      metrics,
-    }
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `report-${startDate}-${endDate}.json`
-    a.click()
   }
 
   const bankActionButtons = (
@@ -72,8 +55,8 @@ export function FinanceContent() {
   )
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="shrink-0 border-b px-4 lg:px-6 mb-3 pt-4 pb-0 bg-background/95 backdrop-blur-md sticky top-0 z-10">
+    <div className="flex flex-col h-screen overflow-hidden">
+      <div className="shrink-0 border-b px-4 lg:px-6 mb-0 pt-4 pb-0 bg-background/95 backdrop-blur-md z-20">
         <nav className="flex gap-6 overflow-x-auto" aria-label="Finance tabs">
           {tabs.map((tab) => (
             <button
@@ -89,10 +72,10 @@ export function FinanceContent() {
         </nav>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 min-h-0 overflow-hidden">
         {activeTab === "analytics" && (
-          <div className="px-4 lg:px-6 space-y-6 pb-6">
-            {/* Accounts section (moved from wallet) */}
+          <div className="px-4 lg:px-6 space-y-6 pb-6 h-full overflow-y-auto">
+            {/* Accounts section */}
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold">Счета и кошельки</h2>
@@ -180,19 +163,6 @@ export function FinanceContent() {
               />
             </div>
 
-            {monthlyData.length > 0 && (
-              <div className="grid gap-4 lg:grid-cols-2">
-                <MonthlyRevenueChart data={monthlyData} />
-                <ProfitChart data={monthlyData} />
-              </div>
-            )}
-
-            {categoryExpenses.length > 0 && (
-              <div>
-                <CategoryExpensesChart data={categoryExpenses} />
-              </div>
-            )}
-
             {/* Account dialog */}
             <Dialog open={isAccountDialogOpen} onOpenChange={setIsAccountDialogOpen}>
               <DialogContent className="max-w-2xl">
@@ -212,7 +182,7 @@ export function FinanceContent() {
         )}
 
         {activeTab === "bank" && (
-          <div className="px-4 lg:px-6 space-y-6 pb-6">
+          <div className="h-full flex flex-col">
             <TransactionList actionButtons={bankActionButtons} />
 
             <Dialog open={isTransactionDialogOpen} onOpenChange={setIsTransactionDialogOpen}>
@@ -231,7 +201,7 @@ export function FinanceContent() {
         )}
 
         {activeTab === "cash" && (
-          <div className="px-4 lg:px-6 space-y-6 pb-6">
+          <div className="px-4 lg:px-6 space-y-6 pb-6 h-full overflow-y-auto">
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <div>
                 <h2 className="text-2xl font-bold">Касса</h2>

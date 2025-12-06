@@ -4,8 +4,6 @@ import { useState, useMemo } from "react"
 import { useFinance } from "@/lib/finance-context"
 import { formatCurrency, formatDate } from "@/lib/finance-utils"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -47,7 +45,7 @@ const AmountCell = ({
 
   return (
     <div
-      className={cn("text-right font-semibold tabular-nums text-xs", "text-overflow-ellipsis overflow-hidden", {
+      className={cn("text-right font-semibold tabular-nums text-sm", "text-overflow-ellipsis overflow-hidden", {
         "text-green-600 dark:text-green-400": type === "income",
         "text-red-600 dark:text-red-400": type === "expense",
         "text-blue-600 dark:text-blue-400": type === "transfer",
@@ -260,7 +258,6 @@ export function TransactionList({ filterByType, actionButtons }: TransactionList
   const handleBulkEditSubmit = () => {
     if (selectedTransactions.size === 0) return
 
-    // Проверяем, что функция updateTransaction существует
     if (typeof updateTransaction !== "function") {
       console.error("updateTransaction function is not available")
       toast({
@@ -274,7 +271,6 @@ export function TransactionList({ filterByType, actionButtons }: TransactionList
     try {
       let updatedCount = 0
       selectedTransactions.forEach((id) => {
-        // Проверяем, что транзакция существует
         const transaction = transactions.find((t) => t.id === id)
         if (!transaction) {
           console.warn(`Transaction with id ${id} not found`)
@@ -358,18 +354,17 @@ export function TransactionList({ filterByType, actionButtons }: TransactionList
 
   return (
     <>
-      <Card>
-        <CardHeader>
+      <div className="flex flex-col h-full">
+        {/* Sticky toolbar section */}
+        <div className="shrink-0 space-y-4 px-4 lg:px-6 py-4 bg-background">
           <div className="flex items-center justify-between gap-4 flex-wrap">
-            <Tabs value={activeTypeTab} onValueChange={(v) => setActiveTypeTab(v as "expense" | "income")}>
-              <TabsList>
-                <TabsTrigger value="expense">Расходы</TabsTrigger>
-                <TabsTrigger value="income">Доходы</TabsTrigger>
-              </TabsList>
-            </Tabs>
-
             <div className="flex items-center gap-2">
-              {actionButtons}
+              <Tabs value={activeTypeTab} onValueChange={(v) => setActiveTypeTab(v as "expense" | "income")}>
+                <TabsList>
+                  <TabsTrigger value="expense">Расходы</TabsTrigger>
+                  <TabsTrigger value="income">Доходы</TabsTrigger>
+                </TabsList>
+              </Tabs>
               <Select value={filterCategory} onValueChange={setFilterCategory}>
                 <SelectTrigger className="w-10 h-10 p-0 flex items-center justify-center [&>svg:last-child]:hidden">
                   <Filter className="h-4 w-4" />
@@ -384,10 +379,12 @@ export function TransactionList({ filterByType, actionButtons }: TransactionList
                 </SelectContent>
               </Select>
             </div>
+
+            <div className="flex items-center gap-2">{actionButtons}</div>
           </div>
 
           {selectedTransactions.size > 0 && (
-            <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg mt-4">
+            <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
               <span className="text-sm font-medium">Выбрано: {selectedTransactions.size}</span>
               <Button
                 variant="outline"
@@ -423,8 +420,10 @@ export function TransactionList({ filterByType, actionButtons }: TransactionList
               </Button>
             </div>
           )}
-        </CardHeader>
-        <CardContent>
+        </div>
+
+        {/* Table section with scrollable body */}
+        <div className="flex-1 min-h-0 px-4 lg:px-6 flex flex-col">
           {filteredTransactions.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <div className="mb-4 rounded-full bg-muted p-3">
@@ -440,184 +439,247 @@ export function TransactionList({ filterByType, actionButtons }: TransactionList
               </p>
             </div>
           ) : (
-            <Table containerClassName="overflow-y-auto max-h-[600px] overflow-x-hidden" className="w-full">
-              <TableHeader className="[&_tr]:bg-card [&_tr]:shadow-md [&_tr]:border-b [&_tr]:border-border [&_th]:sticky [&_th]:top-0 [&_th]:z-30 [&_th]:bg-card/95 [&_th]:backdrop-blur [&_th]:h-10 [&_th]:px-2 [&_th]:text-left [&_th]:align-middle [&_th]:font-medium">
-                <TableRow className="bg-card hover:bg-card border-b">
-                  <TableHead className="w-[50px]">
-                    <Checkbox
-                      checked={
-                        selectedTransactions.size === filteredTransactions.length && filteredTransactions.length > 0
-                      }
-                      onCheckedChange={handleSelectAll}
-                    />
-                  </TableHead>
-                  <TableHead
-                    className="w-[90px] cursor-pointer hover:bg-muted select-none"
-                    onClick={() => handleSort("date")}
-                  >
-                    <div className="flex items-center gap-1">
-                      Дата
-                      {sortColumn === "date" &&
-                        (sortDirection === "asc" ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />)}
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="w-[80px] cursor-pointer hover:bg-muted select-none"
-                    onClick={() => handleSort("type")}
-                  >
-                    <div className="flex items-center gap-1">
-                      Тип
-                      {sortColumn === "type" &&
-                        (sortDirection === "asc" ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />)}
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="w-[120px] cursor-pointer hover:bg-muted select-none"
-                    onClick={() => handleSort("category")}
-                  >
-                    <div className="flex items-center gap-1">
-                      Категория
-                      {sortColumn === "category" &&
-                        (sortDirection === "asc" ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />)}
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="w-[140px] cursor-pointer hover:bg-muted select-none"
-                    onClick={() => handleSort("account")}
-                  >
-                    <div className="flex items-center gap-1">
-                      Счёт
-                      {sortColumn === "account" &&
-                        (sortDirection === "asc" ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />)}
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="w-[120px] cursor-pointer hover:bg-muted select-none"
-                    onClick={() => handleSort("counterparty")}
-                  >
-                    <div className="flex items-center gap-1">
-                      Контрагент
-                      {sortColumn === "counterparty" &&
-                        (sortDirection === "asc" ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />)}
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="w-[100px] text-right cursor-pointer hover:bg-muted select-none"
-                    onClick={() => handleSort("amount")}
-                  >
-                    <div className="flex items-center justify-end gap-1">
-                      Сумма
-                      {sortColumn === "amount" &&
-                        (sortDirection === "asc" ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />)}
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="w-[150px] cursor-pointer hover:bg-muted select-none"
-                    onClick={() => handleSort("comment")}
-                  >
-                    <div className="flex items-center gap-1">
-                      Комментарий
-                      {sortColumn === "comment" &&
-                        (sortDirection === "asc" ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />)}
-                    </div>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredTransactions.map((transaction) => {
-                  const account = accounts.find((a) => a.id === transaction.accountId)
-                  const toAccount = transaction.toAccountId
-                    ? accounts.find((a) => a.id === transaction.toAccountId)
-                    : null
-                  const category = categories.find((c) => c.id === transaction.categoryId)
-                  const counterparty = counterparties.find((cp) => cp.id === transaction.counterpartyId)
-
-                  return (
-                    <TableRow
-                      key={transaction.id}
-                      className="cursor-pointer hover:bg-muted/50 transition-colors border-b"
-                      onClick={() => handleEdit(transaction)}
-                    >
-                      <TableCell
-                        className="p-2 align-middle [&:has([role=checkbox])]:pr-0"
-                        onClick={(e) => e.stopPropagation()}
-                      >
+            <div className="flex-1 min-h-0 flex flex-col overflow-hidden rounded-lg border">
+              <div className="overflow-x-auto overflow-y-auto flex-1 min-h-0">
+                <table className="w-full table-auto border-collapse">
+                  <thead className="sticky top-0 z-10 bg-background">
+                    <tr className="border-b">
+                      <th className="w-12 h-10 px-2 text-left align-middle font-medium text-sm flex-shrink-0">
                         <Checkbox
-                          checked={selectedTransactions.has(transaction.id)}
-                          onCheckedChange={(checked) => handleSelectTransaction(transaction.id, checked as boolean)}
+                          checked={
+                            selectedTransactions.size === filteredTransactions.length && filteredTransactions.length > 0
+                          }
+                          onCheckedChange={handleSelectAll}
                         />
-                      </TableCell>
-                      <TableCell className="p-2 align-middle text-xs whitespace-nowrap">
-                        {new Date(transaction.date).toLocaleDateString("ru-RU", {
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "numeric",
-                        })}
-                      </TableCell>
-                      <TableCell className="p-2 align-middle">
-                        <Badge className={cn("font-medium text-xs px-1 py-0", getTypeColor(transaction.type))}>
-                          {getTypeLabel(transaction.type)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="p-2 align-middle">
-                        {category && transaction.type !== "transfer" ? (
-                          <div className="flex items-center gap-1">
-                            <div
-                              className="h-1.5 w-1.5 rounded-full flex-shrink-0"
-                              style={{ backgroundColor: category.color }}
+                      </th>
+                      <th
+                        className="w-24 h-10 px-2 text-left align-middle font-medium text-sm cursor-pointer hover:bg-muted/50 whitespace-nowrap"
+                        onClick={() => handleSort("date")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Дата
+                          {sortColumn === "date" &&
+                            (sortDirection === "asc" ? (
+                              <ArrowUp className="h-3 w-3" />
+                            ) : (
+                              <ArrowDown className="h-3 w-3" />
+                            ))}
+                        </div>
+                      </th>
+                      <th
+                        className="w-20 h-10 px-2 text-left align-middle font-medium text-sm cursor-pointer hover:bg-muted/50 whitespace-nowrap"
+                        onClick={() => handleSort("type")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Тип
+                          {sortColumn === "type" &&
+                            (sortDirection === "asc" ? (
+                              <ArrowUp className="h-3 w-3" />
+                            ) : (
+                              <ArrowDown className="h-3 w-3" />
+                            ))}
+                        </div>
+                      </th>
+                      <th
+                        className="w-28 h-10 px-2 text-left align-middle font-medium text-sm cursor-pointer hover:bg-muted/50 whitespace-nowrap"
+                        onClick={() => handleSort("category")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Категория
+                          {sortColumn === "category" &&
+                            (sortDirection === "asc" ? (
+                              <ArrowUp className="h-3 w-3" />
+                            ) : (
+                              <ArrowDown className="h-3 w-3" />
+                            ))}
+                        </div>
+                      </th>
+                      <th
+                        className="w-28 h-10 px-2 text-left align-middle font-medium text-sm cursor-pointer hover:bg-muted/50 whitespace-nowrap"
+                        onClick={() => handleSort("account")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Счёт
+                          {sortColumn === "account" &&
+                            (sortDirection === "asc" ? (
+                              <ArrowUp className="h-3 w-3" />
+                            ) : (
+                              <ArrowDown className="h-3 w-3" />
+                            ))}
+                        </div>
+                      </th>
+                      <th
+                        className="w-28 h-10 px-2 text-left align-middle font-medium text-sm cursor-pointer hover:bg-muted/50 whitespace-nowrap"
+                        onClick={() => handleSort("counterparty")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Контрагент
+                          {sortColumn === "counterparty" &&
+                            (sortDirection === "asc" ? (
+                              <ArrowUp className="h-3 w-3" />
+                            ) : (
+                              <ArrowDown className="h-3 w-3" />
+                            ))}
+                        </div>
+                      </th>
+                      <th
+                        className="w-24 h-10 px-2 text-right align-middle font-medium text-sm cursor-pointer hover:bg-muted/50 whitespace-nowrap"
+                        onClick={() => handleSort("amount")}
+                      >
+                        <div className="flex items-center justify-end gap-1">
+                          Сумма
+                          {sortColumn === "amount" &&
+                            (sortDirection === "asc" ? (
+                              <ArrowUp className="h-3 w-3" />
+                            ) : (
+                              <ArrowDown className="h-3 w-3" />
+                            ))}
+                        </div>
+                      </th>
+                      <th
+                        className="w-32 h-10 px-2 text-left align-middle font-medium text-sm cursor-pointer hover:bg-muted/50 whitespace-nowrap"
+                        onClick={() => handleSort("comment")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Комментарий
+                          {sortColumn === "comment" &&
+                            (sortDirection === "asc" ? (
+                              <ArrowUp className="h-3 w-3" />
+                            ) : (
+                              <ArrowDown className="h-3 w-3" />
+                            ))}
+                        </div>
+                      </th>
+                      <th className="w-12 h-10 px-2 text-center align-middle flex-shrink-0" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredTransactions.map((transaction) => {
+                      const account = accounts.find((a) => a.id === transaction.accountId)
+                      const toAccount = transaction.toAccountId
+                        ? accounts.find((a) => a.id === transaction.toAccountId)
+                        : null
+                      const category = categories.find((c) => c.id === transaction.categoryId)
+                      const counterparty = counterparties.find((cp) => cp.id === transaction.counterpartyId)
+
+                      return (
+                        <tr
+                          key={transaction.id}
+                          className="cursor-pointer hover:bg-muted/50 transition-colors border-b"
+                          onClick={() => handleEdit(transaction)}
+                        >
+                          <td className="w-12 p-2 align-middle flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                            <Checkbox
+                              checked={selectedTransactions.has(transaction.id)}
+                              onCheckedChange={(checked) => handleSelectTransaction(transaction.id, checked as boolean)}
                             />
-                            <span className="text-xs whitespace-nowrap" title={category.name}>
-                              {truncateText(category.name, 15)}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-xs">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="p-2 align-middle">
-                        {transaction.type === "transfer" && toAccount ? (
-                          <div className="text-xs">
-                            <div className="font-medium whitespace-nowrap" title={account?.name}>
-                              {truncateText(account?.name || "-", 12)}
-                            </div>
-                            <div className="text-center text-muted-foreground">→</div>
-                            <div className="font-medium whitespace-nowrap" title={toAccount.name}>
-                              {truncateText(toAccount.name, 12)}
-                            </div>
-                          </div>
-                        ) : (
-                          <span className="text-xs whitespace-nowrap" title={account?.name}>
-                            {truncateText(account?.name || "-", 15)}
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell className="p-2 align-middle text-muted-foreground text-xs">
-                        <span className="text-overflow-ellipsis overflow-hidden block" title={counterparty?.name}>
-                          {truncateText(counterparty?.name || "-", 15)}
-                        </span>
-                      </TableCell>
-                      <TableCell className="p-2 align-middle text-right">
-                        <AmountCell
-                          amount={transaction.amount}
-                          currency={transaction.currency}
-                          type={transaction.type}
-                        />
-                      </TableCell>
-                      <TableCell className="p-2 align-middle text-xs text-muted-foreground">
-                        <span className="text-overflow-ellipsis overflow-hidden block" title={transaction.comment}>
-                          {truncateText(transaction.comment || "-", 20)}
-                        </span>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
+                          </td>
+                          <td className="w-24 p-2 align-middle text-sm whitespace-nowrap overflow-hidden text-ellipsis">
+                            {new Date(transaction.date).toLocaleDateString("ru-RU", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                            })}
+                          </td>
+                          <td className="w-20 p-2 align-middle">
+                            <Badge className={cn("font-medium text-sm px-1 py-0", getTypeColor(transaction.type))}>
+                              {getTypeLabel(transaction.type)}
+                            </Badge>
+                          </td>
+                          <td className="w-28 p-2 align-middle">
+                            {category && transaction.type !== "transfer" ? (
+                              <div className="flex items-center gap-1 min-w-0">
+                                <div
+                                  className="h-1.5 w-1.5 rounded-full flex-shrink-0"
+                                  style={{ backgroundColor: category.color }}
+                                />
+                                <span
+                                  className="text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+                                  title={category.name}
+                                >
+                                  {truncateText(category.name, 15)}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-sm">-</span>
+                            )}
+                          </td>
+                          <td className="w-28 p-2 align-middle">
+                            {transaction.type === "transfer" && toAccount ? (
+                              <div className="text-sm">
+                                <div
+                                  className="font-medium whitespace-nowrap overflow-hidden text-ellipsis"
+                                  title={account?.name}
+                                >
+                                  {truncateText(account?.name || "-", 12)}
+                                </div>
+                                <div className="text-center text-muted-foreground">→</div>
+                                <div
+                                  className="font-medium whitespace-nowrap overflow-hidden text-ellipsis"
+                                  title={toAccount.name}
+                                >
+                                  {truncateText(toAccount.name, 12)}
+                                </div>
+                              </div>
+                            ) : (
+                              <span
+                                className="text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+                                title={account?.name}
+                              >
+                                {truncateText(account?.name || "-", 15)}
+                              </span>
+                            )}
+                          </td>
+                          <td
+                            className="w-28 p-2 align-middle text-muted-foreground text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+                            title={counterparty?.name}
+                          >
+                            {truncateText(counterparty?.name || "-", 15)}
+                          </td>
+                          <td className="w-24 p-2 align-middle text-right">
+                            <AmountCell
+                              amount={transaction.amount}
+                              currency={transaction.currency}
+                              type={transaction.type}
+                            />
+                          </td>
+                          <td
+                            className="w-32 p-2 align-middle text-sm text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis"
+                            title={transaction.comment}
+                          >
+                            {truncateText(transaction.comment || "-", 20)}
+                          </td>
+                          <td className="w-12 p-2 align-middle text-center">
+                            <Button variant="ghost" size="sm" onClick={() => handleShowDetails(transaction)}>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           )}
 
-          {/* Пагинация */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
+          {filteredTransactions.length > 0 && (
+            <div className="shrink-0 flex items-center justify-between py-4">
+              <div className="flex items-center gap-2">
+                <Select value={limit.toString()} onValueChange={(value) => handleLimitChange(Number(value))}>
+                  <SelectTrigger className="w-[80px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="30">30</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -664,25 +726,12 @@ export function TransactionList({ filterByType, actionButtons }: TransactionList
                   Вперед
                 </Button>
               </div>
-
-              <div className="flex items-center gap-2">
-                <Select value={limit.toString()} onValueChange={(value) => handleLimitChange(Number(value))}>
-                  <SelectTrigger className="w-[80px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="20">20</SelectItem>
-                    <SelectItem value="30">30</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
-                    <SelectItem value="100">100</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
+      {/* Edit Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -691,13 +740,20 @@ export function TransactionList({ filterByType, actionButtons }: TransactionList
           {editingTransaction && (
             <TransactionForm
               transaction={editingTransaction}
-              onSuccess={() => setEditOpen(false)}
-              onCancel={() => setEditOpen(false)}
+              onSuccess={() => {
+                setEditOpen(false)
+                setEditingTransaction(null)
+              }}
+              onCancel={() => {
+                setEditOpen(false)
+                setEditingTransaction(null)
+              }}
             />
           )}
         </DialogContent>
       </Dialog>
 
+      {/* Bulk Edit Dialog */}
       <Dialog open={bulkEditOpen} onOpenChange={setBulkEditOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -811,6 +867,7 @@ export function TransactionList({ filterByType, actionButtons }: TransactionList
         </DialogContent>
       </Dialog>
 
+      {/* Details Dialog */}
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>

@@ -17,7 +17,6 @@ import { useLanguage } from "@/hooks/use-language"
 import { TemplateUpload } from "@/components/template-upload"
 import { TemplateList } from "@/components/template-list"
 import { getTemplatesByType } from "@/lib/storage"
-import { generateSampleTemplate } from "@/lib/template-generator"
 import type { Template } from "@/lib/storage"
 
 export function DocumentsContent() {
@@ -29,7 +28,7 @@ export function DocumentsContent() {
   const [hasAnyTemplate, setHasAnyTemplate] = useState(false)
   const [loading, setLoading] = useState(true)
   const [docs, setDocs] = React.useState<SavedDocument[]>([])
-  const [activeFilter, setActiveFilter] = React.useState("incoming") // Changed default filter from "all" to "incoming"
+  const [activeFilter, setActiveFilter] = React.useState("incoming")
   const { currentPage, documentType, setDocumentType } = useNavigation()
   const { t } = useLanguage()
 
@@ -178,25 +177,6 @@ export function DocumentsContent() {
     checkTemplates()
   }
 
-  const handleDownloadSample = () => {
-    try {
-      const templateBuffer = generateSampleTemplate()
-      const blob = new Blob([templateBuffer], {
-        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = "invoice-template-sample.docx"
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-    } catch (error) {
-      console.error("[v0] Error generating sample template:", error)
-    }
-  }
-
   const handleTemplateUpdate = async () => {
     if (documentType) {
       const typeTemplates = await getTemplatesByType(documentType)
@@ -214,7 +194,6 @@ export function DocumentsContent() {
   }
 
   const renderTemplatesContent = () => {
-    // If no document type selected, show template type cards
     if (!documentType) {
       const documentTypeCards = [
         {
@@ -264,7 +243,6 @@ export function DocumentsContent() {
       )
     }
 
-    // If document type selected, show template detail view
     const getDocumentTypeInfo = () => {
       switch (documentType) {
         case "invoice":
@@ -290,9 +268,7 @@ export function DocumentsContent() {
             <p className="text-muted-foreground text-sm">{info.description}</p>
           </div>
           <div className="flex gap-2">
-            <Button onClick={handleDownloadSample} variant="outline" size="sm">
-              Скачать образец
-            </Button>
+            {/* Кнопка будет неактивна когда нет шаблонов */}
             <Button onClick={() => setShowUpload(true)} size="sm">
               <IconPlus className="h-4 w-4 mr-2" />
               Загрузить шаблон

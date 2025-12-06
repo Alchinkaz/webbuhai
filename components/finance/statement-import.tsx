@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Upload, AlertCircle, CheckCircle, Wallet } from "lucide-react"
+import { Download, AlertCircle, CheckCircle, Wallet } from "lucide-react"
 import * as XLSX from "xlsx"
 import Papa from "papaparse"
 import { useFinance } from "@/lib/finance-context"
@@ -955,7 +955,7 @@ export function StatementImport() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           <Button variant="outline" className="flex items-center gap-2 bg-transparent">
-            <Upload className="h-4 w-4 mr-2" />
+            <Download className="h-4 w-4 mr-2" />
             Загрузить выписку
           </Button>
         </DialogTrigger>

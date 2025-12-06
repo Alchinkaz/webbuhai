@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { useRouter, usePathname } from "next/navigation"
 import { DepartmentsView } from "@/components/departments-view"
 import { EmployeesTable } from "@/components/employees-table"
 import { EmployeeDialog, type Employee } from "@/components/employee-dialog"
@@ -9,31 +8,24 @@ import { DepartmentDialog, type Department } from "@/components/department-dialo
 import { useNavigation } from "@/hooks/use-navigation"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
-import { IconPlus, IconSearch, IconArrowLeft } from "@tabler/icons-react"
+import { IconPlus, IconSearch } from "@tabler/icons-react"
 import { Input } from "@/components/ui/input"
-import { TimesheetTable } from "@/components/timesheet/timesheet-table"
-import { useEmployeesSafe } from "@/hooks/use-employees-safe"
 
 const filters = [
-  { id: "departments", label: "Отделы", path: "struktura" },
-  { id: "employees", label: "Сотрудники", path: "sotrudniki" },
-  { id: "timesheet", label: "Табель", path: "tabel" },
+  { id: "departments", label: "Отделы" },
+  { id: "employees", label: "Сотрудники" },
+  { id: "salary", label: "Зарплата" },
+  { id: "taxes", label: "Налоги" },
+  { id: "timesheet", label: "Табель" },
 ]
 
-// Маппинг пути к filter id
-const pathToFilterMap: Record<string, string> = {
-  struktura: "departments",
-  sotrudniki: "employees",
-  tabel: "timesheet",
-}
-
 const mockDepartments: Department[] = [
-  { id: "1", name: "Руководство", type: "Управление", employeeCount: 3, parentId: null, order: 0 },
-  { id: "2", name: "Бухгалтерия", type: "Финансы", employeeCount: 5, parentId: "1", order: 0 },
-  { id: "3", name: "Продажи", type: "Коммерческий", employeeCount: 8, parentId: "1", order: 1 },
-  { id: "4", name: "Кадры", type: "HR", employeeCount: 2, parentId: "1", order: 2 },
-  { id: "5", name: "IT-отдел", type: "Техническая поддержка", employeeCount: 4, parentId: "1", order: 3 },
-  { id: "6", name: "Маркетинг", type: "Коммерческий", employeeCount: 6, parentId: "3", order: 0 },
+  { id: "1", name: "Руководство", type: "Управление", employeeCount: 3 },
+  { id: "2", name: "Бухгалтерия", type: "Финансы", employeeCount: 5 },
+  { id: "3", name: "Продажи", type: "Коммерческий", employeeCount: 8 },
+  { id: "4", name: "Кадры", type: "HR", employeeCount: 2 },
+  { id: "5", name: "IT-отдел", type: "Техническая поддержка", employeeCount: 4 },
+  { id: "6", name: "Маркетинг", type: "Коммерческий", employeeCount: 6 },
 ]
 
 const mockEmployees: Employee[] = [
@@ -80,45 +72,10 @@ const mockEmployees: Employee[] = [
 ]
 
 export function HRContent() {
-  const router = useRouter()
-  const pathname = usePathname()
   const { selectedDepartment, setSelectedDepartment } = useNavigation()
   const { toast } = useToast()
-  
-  // Определяем активный фильтр на основе URL
-  const getActiveFilterFromPath = React.useCallback(() => {
-    const pathSegments = pathname.split("/")
-    const lastSegment = pathSegments[pathSegments.length - 1]
-    return pathToFilterMap[lastSegment] || "departments"
-  }, [pathname])
-  
-  const [activeFilter, setActiveFilter] = React.useState(() => getActiveFilterFromPath())
+  const [activeFilter, setActiveFilter] = React.useState("departments")
   const [searchQuery, setSearchQuery] = React.useState("")
-  
-  // Обновляем activeFilter при изменении URL
-  React.useEffect(() => {
-    const filterFromPath = getActiveFilterFromPath()
-    if (filterFromPath !== activeFilter) {
-      setActiveFilter(filterFromPath)
-    }
-  }, [pathname, getActiveFilterFromPath, activeFilter])
-
-  // Обработка URL параметра для выбора отдела
-  React.useEffect(() => {
-    if (activeFilter === "departments") {
-      const urlParams = new URLSearchParams(window.location.search)
-      const departmentId = urlParams.get("department")
-      if (departmentId) {
-        const department = departments.find(d => d.id === departmentId)
-        if (department && (!selectedDepartment || selectedDepartment.id !== department.id)) {
-          setSelectedDepartment({ id: department.id, name: department.name })
-        }
-      } else if (selectedDepartment) {
-        // Если параметра нет, но отдел выбран - сбрасываем
-        setSelectedDepartment(null)
-      }
-    }
-  }, [pathname, activeFilter, departments, selectedDepartment, setSelectedDepartment])
 
   const [departments, setDepartments] = React.useState<Department[]>(mockDepartments)
   const [employees, setEmployees] = React.useState<Employee[]>(mockEmployees)
@@ -127,7 +84,6 @@ export function HRContent() {
   const [departmentDialogOpen, setDepartmentDialogOpen] = React.useState(false)
   const [editingEmployee, setEditingEmployee] = React.useState<Employee | null>(null)
   const [editingDepartment, setEditingDepartment] = React.useState<Department | null>(null)
-  const [newDepartmentParentId, setNewDepartmentParentId] = React.useState<string | null>(null)
 
   const departmentsWithCounts = React.useMemo(() => {
     return departments.map((dept) => ({
@@ -151,12 +107,6 @@ export function HRContent() {
 
   const handleDepartmentClick = (department: Department) => {
     setSelectedDepartment({ id: department.id, name: department.name })
-    router.push(`/hr/struktura?department=${department.id}`)
-  }
-
-  const handleBackToDepartments = () => {
-    setSelectedDepartment(null)
-    router.push("/hr/struktura")
   }
 
   const handleAddEmployee = (employee: Omit<Employee, "id">) => {
@@ -178,44 +128,23 @@ export function HRContent() {
   }
 
   const handleAddDepartment = (department: Omit<Department, "id" | "employeeCount">) => {
-    if (editingDepartment && editingDepartment.id) {
-      // Редактирование существующего отдела
-      const updatedDepartments = departments.map((d) => 
-        d.id === editingDepartment.id 
-          ? { ...d, ...department, parentId: department.parentId || null }
-          : d
-      )
-      setDepartments(updatedDepartments)
+    if (editingDepartment) {
+      setDepartments(departments.map((d) => (d.id === editingDepartment.id ? { ...d, ...department } : d)))
       setEditingDepartment(null)
-      toast({
-        title: "Отдел обновлен",
-        description: "Информация об отделе успешно обновлена",
-      })
     } else {
-      // Создание нового отдела
-      const parentId = newDepartmentParentId || department.parentId || null
-      const siblings = departments.filter((d) => d.parentId === parentId)
-      const maxOrder = siblings.length > 0 
-        ? Math.max(...siblings.map((d) => d.order ?? 0), -1)
-        : -1
       const newDepartment: Department = {
         ...department,
-        parentId: parentId,
         id: Date.now().toString(),
         employeeCount: 0,
-        order: maxOrder + 1,
       }
       setDepartments([...departments, newDepartment])
-      toast({
-        title: "Отдел добавлен",
-        description: "Новый отдел успешно добавлен",
-      })
     }
     setDepartmentDialogOpen(false)
-    setNewDepartmentParentId(null)
-    setEditingDepartment(null)
+    toast({
+      title: editingDepartment ? "Отдел обновлен" : "Отдел добавлен",
+      description: editingDepartment ? "Информация об отделе успешно обновлена" : "Новый отдел успешно добавлен",
+    })
   }
-
 
   const handleDeleteEmployee = (id: string) => {
     setEmployees(employees.filter((e) => e.id !== id))
@@ -226,11 +155,10 @@ export function HRContent() {
   }
 
   const handleDeleteDepartment = (id: string) => {
-    const dept = departments.find((d) => d.id === id)
-    if (!dept) return
-
-    // Проверяем наличие сотрудников
-    const departmentEmployees = employees.filter((e) => e.department === dept.name)
+    const departmentEmployees = employees.filter((e) => {
+      const dept = departments.find((d) => d.id === id)
+      return dept && e.department === dept.name
+    })
     if (departmentEmployees.length > 0) {
       toast({
         title: "Невозможно удалить отдел",
@@ -239,22 +167,7 @@ export function HRContent() {
       })
       return
     }
-
-    // Проверяем наличие подотделов
-    const subDepartments = departments.filter((d) => d.parentId === id)
-    if (subDepartments.length > 0) {
-      toast({
-        title: "Невозможно удалить отдел",
-        description: "В отделе есть подотделы. Сначала удалите или переместите их.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    // Удаляем отдел
-    const updatedDepartments = departments.filter((d) => d.id !== id)
-    
-    setDepartments(updatedDepartments)
+    setDepartments(departments.filter((d) => d.id !== id))
     toast({
       title: "Отдел удален",
       description: "Отдел успешно удален из системы",
@@ -279,7 +192,6 @@ export function HRContent() {
   const closeDepartmentDialog = () => {
     setDepartmentDialogOpen(false)
     setEditingDepartment(null)
-    setNewDepartmentParentId(null)
   }
 
   const getPlaceholder = () => {
@@ -291,6 +203,10 @@ export function HRContent() {
         return "Поиск отделов..."
       case "employees":
         return "Поиск сотрудников..."
+      case "salary":
+        return "Поиск по зарплате..."
+      case "taxes":
+        return "Поиск по налогам..."
       case "timesheet":
         return "Поиск в табеле..."
       default:
@@ -347,8 +263,27 @@ export function HRContent() {
           onDeleteEmployee={handleDeleteEmployee}
         />
       )
+    } else if (activeFilter === "salary") {
+      return (
+        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+          <p className="text-lg font-medium">Раздел в разработке</p>
+          <p className="text-sm">Управление зарплатами скоро будет доступно</p>
+        </div>
+      )
+    } else if (activeFilter === "taxes") {
+      return (
+        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+          <p className="text-lg font-medium">Раздел в разработке</p>
+          <p className="text-sm">Управление налогами скоро будет доступно</p>
+        </div>
+      )
     } else if (activeFilter === "timesheet") {
-      return <TimesheetContent employees={employees} />
+      return (
+        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+          <p className="text-lg font-medium">Раздел в разработке</p>
+          <p className="text-sm">Табель учёта рабочего времени скоро будет доступен</p>
+        </div>
+      )
     }
     return null
   }
@@ -361,8 +296,7 @@ export function HRContent() {
             <button
               key={filter.id}
               onClick={() => {
-                const newPath = `/hr/${filter.path}`
-                router.push(newPath)
+                setActiveFilter(filter.id)
                 setSearchQuery("")
                 setSelectedDepartment(null)
               }}
@@ -377,18 +311,7 @@ export function HRContent() {
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {activeFilter === "departments" && selectedDepartment && (
-          <div className="px-4 lg:px-6 mb-3 flex items-center gap-3 pt-1">
-            <Button variant="outline" onClick={handleBackToDepartments}>
-              <IconArrowLeft className="h-4 w-4 mr-2" />
-              Назад к отделам
-            </Button>
-            <div className="flex-1">
-              <h2 className="text-lg font-semibold">Отдел: {selectedDepartment.name}</h2>
-            </div>
-          </div>
-        )}
-        {showSearchAndButton && !selectedDepartment && (
+        {showSearchAndButton && (
           <div className="px-4 lg:px-6 mb-3 flex items-center gap-3 pt-1">
             <div className="relative flex-1">
               <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -424,18 +347,7 @@ export function HRContent() {
         onOpenChange={closeDepartmentDialog}
         onSubmit={handleAddDepartment}
         department={editingDepartment}
-        departments={departments}
-        employees={employees}
-        defaultParentId={newDepartmentParentId}
       />
-    </div>
-  )
-}
-
-function TimesheetContent({ employees }: { employees: Employee[] }) {
-  return (
-    <div className="px-4 lg:px-6 py-4">
-      <TimesheetTable employees={employees} />
     </div>
   )
 }
