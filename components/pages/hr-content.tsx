@@ -325,7 +325,7 @@ export function HRContent() {
         />
       )
     } else if (activeFilter === "timesheet") {
-      return <TimesheetContent />
+      return <TimesheetContent employees={employees} />
     }
     return null
   }
@@ -398,35 +398,7 @@ export function HRContent() {
   )
 }
 
-function TimesheetContent() {
-  const { 
-    employees, 
-    loading, 
-    error
-  } = useEmployeesSafe()
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64 px-4 lg:px-6">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Загрузка сотрудников...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-col gap-6 px-4 lg:px-6">
-        <div className="text-center">
-          <div className="text-destructive text-lg mb-2">Ошибка загрузки</div>
-          <p className="text-muted-foreground">{error}</p>
-        </div>
-      </div>
-    )
-  }
-
+function TimesheetContent({ employees }: { employees: Employee[] }) {
   return (
     <div className="px-4 lg:px-6 py-4">
       <TimesheetTable employees={employees} />

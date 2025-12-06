@@ -1,20 +1,25 @@
 "use client"
 
 import React, { useState, useMemo } from "react"
-import { Employee } from "@/hooks/use-employees"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react"
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isWeekend } from "date-fns"
 
 type AttendanceCode = "8" | "4" | "Н" | "У" | "О" | "Б" | ""
 
 interface TimesheetData {
-  [employeeId: number]: {
+  [employeeId: string]: {
     [date: string]: AttendanceCode
   }
+}
+
+interface Employee {
+  id: string
+  name: string
+  status: "active" | "inactive" | "pending" | "dismissed"
 }
 
 interface TimesheetTableProps {
@@ -36,7 +41,7 @@ export function TimesheetTable({ employees }: TimesheetTableProps) {
     return employees.filter(emp => emp.status === "active")
   }, [employees])
 
-  const handleCellChange = (employeeId: number, date: string, value: AttendanceCode) => {
+  const handleCellChange = (employeeId: string, date: string, value: AttendanceCode) => {
     setTimesheetData(prev => ({
       ...prev,
       [employeeId]: {
@@ -46,9 +51,18 @@ export function TimesheetTable({ employees }: TimesheetTableProps) {
     }))
   }
 
-  const getCellValue = (employeeId: number, date: string): AttendanceCode => {
+  const getCellValue = (employeeId: string, date: string): AttendanceCode => {
     return timesheetData[employeeId]?.[date] || ""
   }
+
+  const attendanceOptions: { value: AttendanceCode; label: string; description: string }[] = [
+    { value: "8", label: "8", description: "Полный день (8 часов)" },
+    { value: "4", label: "4", description: "Неполный день (4 часа)" },
+    { value: "Н", label: "Н", description: "Отсутствовал" },
+    { value: "У", label: "У", description: "Уволен" },
+    { value: "О", label: "О", description: "Отпуск" },
+    { value: "Б", label: "Б", description: "Болел" },
+  ]
 
   const handlePreviousMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))
@@ -103,7 +117,6 @@ export function TimesheetTable({ employees }: TimesheetTableProps) {
             <TableHeader>
               <TableRow>
                 <TableHead className="sticky left-0 z-10 bg-background min-w-[200px]">Имя</TableHead>
-                <TableHead className="sticky left-[200px] z-10 bg-background min-w-[120px]">ЗП начало</TableHead>
                 {daysInMonth.map((day) => {
                   const dayOfWeek = getDay(day)
                   const isWeekendDay = isWeekend(day)
@@ -123,14 +136,10 @@ export function TimesheetTable({ employees }: TimesheetTableProps) {
             </TableHeader>
             <TableBody>
               {activeEmployees.map((employee) => {
-                const salaryNumber = employee.salary.replace(/[^\d]/g, "")
                 return (
                   <TableRow key={employee.id}>
                     <TableCell className="sticky left-0 z-10 bg-background font-medium">
                       {employee.name}
-                    </TableCell>
-                    <TableCell className="sticky left-[200px] z-10 bg-background">
-                      ₸ {Number(salaryNumber).toLocaleString()}
                     </TableCell>
                     {daysInMonth.map((day) => {
                       const dateStr = format(day, "yyyy-MM-dd")
@@ -141,25 +150,27 @@ export function TimesheetTable({ employees }: TimesheetTableProps) {
                           key={dateStr}
                           className={`p-1 ${isWeekendDay ? "bg-yellow-50 dark:bg-yellow-950/20" : ""}`}
                         >
-                          <Input
-                            type="text"
-                            value={value}
-                            onChange={(e) => {
-                              const inputValue = e.target.value.toUpperCase()
-                              if (inputValue === "" || ["8", "4", "Н", "У", "О", "Б"].includes(inputValue)) {
-                                handleCellChange(employee.id, dateStr, inputValue as AttendanceCode)
-                              }
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                e.currentTarget.blur()
-                              }
-                            }}
-                            className="w-12 h-8 text-center text-sm p-0 border-2 focus:border-primary"
-                            placeholder=""
-                            maxLength={1}
-                            title={value ? getCodeDescription(value) : "Введите: 8, 4, Н, У, О, Б"}
-                          />
+                          <Select
+                            value={value || ""}
+                            onValueChange={(val) => handleCellChange(employee.id, dateStr, val === "" ? "" : (val as AttendanceCode))}
+                          >
+                            <SelectTrigger className="w-14 h-8 text-center text-sm p-0 px-1 [&>span]:flex [&>span]:justify-center">
+                              <SelectValue placeholder="—" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="">
+                                <span className="text-muted-foreground">—</span>
+                              </SelectItem>
+                              {attendanceOptions.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium min-w-[20px]">{option.label}</span>
+                                    <span className="text-xs text-muted-foreground">- {option.description}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </TableCell>
                       )
                     })}
