@@ -9,7 +9,7 @@ import { DepartmentDialog, type Department } from "@/components/department-dialo
 import { useNavigation } from "@/hooks/use-navigation"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
-import { IconPlus, IconSearch } from "@tabler/icons-react"
+import { IconPlus, IconSearch, IconArrowLeft } from "@tabler/icons-react"
 import { Input } from "@/components/ui/input"
 import { TimesheetTable } from "@/components/timesheet/timesheet-table"
 import { useEmployeesSafe } from "@/hooks/use-employees-safe"
@@ -103,6 +103,23 @@ export function HRContent() {
     }
   }, [pathname, getActiveFilterFromPath, activeFilter])
 
+  // Обработка URL параметра для выбора отдела
+  React.useEffect(() => {
+    if (activeFilter === "departments") {
+      const urlParams = new URLSearchParams(window.location.search)
+      const departmentId = urlParams.get("department")
+      if (departmentId) {
+        const department = departments.find(d => d.id === departmentId)
+        if (department && (!selectedDepartment || selectedDepartment.id !== department.id)) {
+          setSelectedDepartment({ id: department.id, name: department.name })
+        }
+      } else if (selectedDepartment) {
+        // Если параметра нет, но отдел выбран - сбрасываем
+        setSelectedDepartment(null)
+      }
+    }
+  }, [pathname, activeFilter, departments, selectedDepartment, setSelectedDepartment])
+
   const [departments, setDepartments] = React.useState<Department[]>(mockDepartments)
   const [employees, setEmployees] = React.useState<Employee[]>(mockEmployees)
 
@@ -134,6 +151,12 @@ export function HRContent() {
 
   const handleDepartmentClick = (department: Department) => {
     setSelectedDepartment({ id: department.id, name: department.name })
+    router.push(`/hr/struktura?department=${department.id}`)
+  }
+
+  const handleBackToDepartments = () => {
+    setSelectedDepartment(null)
+    router.push("/hr/struktura")
   }
 
   const handleAddEmployee = (employee: Omit<Employee, "id">) => {
@@ -354,7 +377,18 @@ export function HRContent() {
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {showSearchAndButton && (
+        {activeFilter === "departments" && selectedDepartment && (
+          <div className="px-4 lg:px-6 mb-3 flex items-center gap-3 pt-1">
+            <Button variant="outline" onClick={handleBackToDepartments}>
+              <IconArrowLeft className="h-4 w-4 mr-2" />
+              Назад к отделам
+            </Button>
+            <div className="flex-1">
+              <h2 className="text-lg font-semibold">Отдел: {selectedDepartment.name}</h2>
+            </div>
+          </div>
+        )}
+        {showSearchAndButton && !selectedDepartment && (
           <div className="px-4 lg:px-6 mb-3 flex items-center gap-3 pt-1">
             <div className="relative flex-1">
               <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
