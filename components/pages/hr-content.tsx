@@ -11,15 +11,12 @@ import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { IconPlus, IconSearch } from "@tabler/icons-react"
 import { Input } from "@/components/ui/input"
-import { PayrollSummary } from "@/components/payroll/payroll-summary"
-import { EmployeeList } from "@/components/payroll/employee-list"
-import { PayrollHeader } from "@/components/payroll/payroll-header"
+import { TimesheetTable } from "@/components/timesheet/timesheet-table"
 import { useEmployeesSafe } from "@/hooks/use-employees-safe"
 
 const filters = [
   { id: "departments", label: "Отделы", path: "struktura" },
   { id: "employees", label: "Сотрудники", path: "sotrudniki" },
-  { id: "salary", label: "Зарплата", path: "zarplata" },
   { id: "timesheet", label: "Табель", path: "tabel" },
 ]
 
@@ -27,7 +24,6 @@ const filters = [
 const pathToFilterMap: Record<string, string> = {
   struktura: "departments",
   sotrudniki: "employees",
-  zarplata: "salary",
   tabel: "timesheet",
 }
 
@@ -272,8 +268,6 @@ export function HRContent() {
         return "Поиск отделов..."
       case "employees":
         return "Поиск сотрудников..."
-      case "salary":
-        return "Поиск по зарплате..."
       case "timesheet":
         return "Поиск в табеле..."
       default:
@@ -330,15 +324,8 @@ export function HRContent() {
           onDeleteEmployee={handleDeleteEmployee}
         />
       )
-    } else if (activeFilter === "salary") {
-      return <PayrollContent />
     } else if (activeFilter === "timesheet") {
-      return (
-        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-          <p className="text-lg font-medium">Раздел в разработке</p>
-          <p className="text-sm">Табель учёта рабочего времени скоро будет доступен</p>
-        </div>
-      )
+      return <TimesheetContent />
     }
     return null
   }
@@ -411,21 +398,16 @@ export function HRContent() {
   )
 }
 
-function PayrollContent() {
+function TimesheetContent() {
   const { 
     employees, 
-    addEmployee, 
-    updateEmployee, 
-    deleteEmployee, 
-    dismissEmployee, 
-    rehireEmployee,
     loading, 
     error
   } = useEmployeesSafe()
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex items-center justify-center h-64 px-4 lg:px-6">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Загрузка сотрудников...</p>
@@ -446,18 +428,8 @@ function PayrollContent() {
   }
 
   return (
-    <div className="flex flex-col gap-6 px-4 lg:px-6 py-4">
-      <PayrollHeader onEmployeeAdd={addEmployee} />
-      <div className="space-y-6">
-        <PayrollSummary employees={employees} />
-        <EmployeeList 
-          employees={employees} 
-          onEmployeeUpdate={updateEmployee}
-          onEmployeeDelete={deleteEmployee}
-          onEmployeeDismiss={dismissEmployee}
-          onEmployeeRehire={rehireEmployee}
-        />
-      </div>
+    <div className="px-4 lg:px-6 py-4">
+      <TimesheetTable employees={employees} />
     </div>
   )
 }
