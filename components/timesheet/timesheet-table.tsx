@@ -8,11 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react"
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isWeekend } from "date-fns"
 
-type AttendanceCode = "8" | "4" | "Н" | "У" | "О" | "Б" | ""
+type AttendanceCode = "8" | "4" | "Н" | "У" | "О" | "Б" | "clear"
 
 interface TimesheetData {
   [employeeId: string]: {
-    [date: string]: AttendanceCode
+    [date: string]: AttendanceCode | ""
   }
 }
 
@@ -42,16 +42,28 @@ export function TimesheetTable({ employees }: TimesheetTableProps) {
   }, [employees])
 
   const handleCellChange = (employeeId: string, date: string, value: AttendanceCode) => {
-    setTimesheetData(prev => ({
-      ...prev,
-      [employeeId]: {
-        ...prev[employeeId],
-        [date]: value,
-      },
-    }))
+    setTimesheetData(prev => {
+      const newData = { ...prev }
+      if (!newData[employeeId]) {
+        newData[employeeId] = {}
+      }
+      if (value === "clear") {
+        const { [date]: _, ...rest } = newData[employeeId]
+        newData[employeeId] = rest
+        if (Object.keys(newData[employeeId]).length === 0) {
+          delete newData[employeeId]
+        }
+      } else {
+        newData[employeeId] = {
+          ...newData[employeeId],
+          [date]: value,
+        }
+      }
+      return newData
+    })
   }
 
-  const getCellValue = (employeeId: string, date: string): AttendanceCode => {
+  const getCellValue = (employeeId: string, date: string): AttendanceCode | "" => {
     return timesheetData[employeeId]?.[date] || ""
   }
 
@@ -62,6 +74,7 @@ export function TimesheetTable({ employees }: TimesheetTableProps) {
     { value: "У", label: "У", description: "Уволен" },
     { value: "О", label: "О", description: "Отпуск" },
     { value: "Б", label: "Б", description: "Болел" },
+    { value: "clear", label: "—", description: "Очистить" },
   ]
 
   const handlePreviousMonth = () => {
@@ -151,16 +164,15 @@ export function TimesheetTable({ employees }: TimesheetTableProps) {
                           className={`p-1 ${isWeekendDay ? "bg-yellow-50 dark:bg-yellow-950/20" : ""}`}
                         >
                           <Select
-                            value={value || ""}
-                            onValueChange={(val) => handleCellChange(employee.id, dateStr, val === "" ? "" : (val as AttendanceCode))}
+                            value={value || undefined}
+                            onValueChange={(val) => handleCellChange(employee.id, dateStr, val as AttendanceCode)}
                           >
-                            <SelectTrigger className="w-14 h-8 text-center text-sm p-0 px-1 [&>span]:flex [&>span]:justify-center">
-                              <SelectValue placeholder="—" />
+                            <SelectTrigger className="w-14 h-8 text-center text-sm p-0 px-1" size="sm">
+                              <SelectValue placeholder="—">
+                                {value || "—"}
+                              </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">
-                                <span className="text-muted-foreground">—</span>
-                              </SelectItem>
                               {attendanceOptions.map((option) => (
                                 <SelectItem key={option.value} value={option.value}>
                                   <div className="flex items-center gap-2">
