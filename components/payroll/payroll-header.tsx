@@ -1,12 +1,12 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Download, CalendarDays } from "lucide-react"
+import { Download } from "lucide-react"
 import { AddEmployeeForm } from "./add-employee-form"
 import { NewEmployeeData } from "@/hooks/use-employees"
 
 interface PayrollHeaderProps {
-  onEmployeeAdd: (employee: NewEmployeeData) => void
+  onEmployeeAdd: (employee: NewEmployeeData) => void | Promise<void>
 }
 
 export function PayrollHeader({ onEmployeeAdd }: PayrollHeaderProps) {

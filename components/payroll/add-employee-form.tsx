@@ -94,7 +94,7 @@ const additionalDeductions: { value: AdditionalDeduction; label: string }[] = [
 ]
 
 interface AddEmployeeFormProps {
-  onEmployeeAdd?: (employee: NewEmployeeData) => void
+  onEmployeeAdd?: (employee: NewEmployeeData) => void | Promise<void>
   onEmployeeUpdate?: (employee: UpdateEmployeeData) => void
   editingEmployee?: Employee | null
   trigger?: React.ReactNode
@@ -183,15 +183,19 @@ export function AddEmployeeForm({
     }
   }, [editingEmployee, form])
 
-  const onSubmit = (data: EmployeeFormData) => {
-    if (isEditing && editingEmployee) {
-      onEmployeeUpdate?.({ ...data, id: editingEmployee.id })
-    } else {
-      onEmployeeAdd?.(data)
+  const onSubmit = async (data: EmployeeFormData) => {
+    try {
+      if (isEditing && editingEmployee) {
+        await onEmployeeUpdate?.({ ...data, id: editingEmployee.id })
+      } else {
+        await onEmployeeAdd?.(data)
+      }
+      form.reset()
+      setShowAdvancedOptions(false)
+      setOpen(false)
+    } catch (error) {
+      console.error('Error submitting form:', error)
     }
-    form.reset()
-    setShowAdvancedOptions(false)
-    setOpen(false)
   }
 
   return (

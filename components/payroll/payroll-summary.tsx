@@ -56,14 +56,14 @@ export function PayrollSummary({ employees }: PayrollSummaryProps) {
       value: `₸ ${totalSalary.toLocaleString()}`,
       subtext: "за месяц",
       icon: Wallet,
-      color: "text-success",
+      color: "text-green-600",
     },
     {
       label: "Налоги и отчисления",
       value: `₸ ${totalTaxes.toLocaleString()}`,
       subtext: "ИПН, СО, ОПВ, ОСМС",
       icon: TrendingUp,
-      color: "text-warning",
+      color: "text-yellow-600",
     },
     {
       label: "К выплате",

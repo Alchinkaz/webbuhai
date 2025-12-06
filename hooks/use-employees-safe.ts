@@ -92,7 +92,7 @@ export function useEmployeesSafe() {
       const osms = Math.round(salaryNumber * 0.02)
 
       const newEmployee: Employee = {
-        id: Math.max(...employees.map(e => e.id)) + 1,
+        id: employees.length > 0 ? Math.max(...employees.map(e => e.id)) + 1 : 1,
         name: newEmployeeData.fullName,
         position: newEmployeeData.position,
         salary: `₸ ${salaryNumber.toLocaleString()}`,
