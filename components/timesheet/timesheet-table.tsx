@@ -140,17 +140,19 @@ export function TimesheetTable({ employees }: TimesheetTableProps) {
                       key={day.toISOString()}
                       className={`min-w-[60px] text-center ${
                         isTodayDate 
-                          ? "bg-blue-100 dark:bg-blue-950/30 border-2 border-blue-500" 
+                          ? "bg-gray-300 dark:bg-gray-700 border-2 border-gray-500" 
                           : isWeekendDay 
                           ? "bg-yellow-50 dark:bg-yellow-950/20" 
                           : ""
                       }`}
                     >
                       <div className="flex flex-col">
-                        <span className={`text-xs font-normal ${isTodayDate ? "font-bold text-blue-700 dark:text-blue-300" : ""}`}>
+                        <span className={`text-xs font-normal ${isTodayDate ? "font-bold text-gray-900 dark:text-gray-100" : ""}`}>
                           {format(day, "dd")}
                         </span>
-                        <span className="text-xs text-muted-foreground">{dayNames[dayOfWeek]}</span>
+                        <span className={`text-xs ${isTodayDate ? "text-gray-700 dark:text-gray-300" : "text-muted-foreground"}`}>
+                          {dayNames[dayOfWeek]}
+                        </span>
                       </div>
                     </TableHead>
                   )
@@ -174,7 +176,7 @@ export function TimesheetTable({ employees }: TimesheetTableProps) {
                           key={dateStr}
                           className={`p-1 ${
                             isTodayDate 
-                              ? "bg-blue-100 dark:bg-blue-950/30 border-2 border-blue-500" 
+                              ? "bg-gray-300 dark:bg-gray-700 border-2 border-gray-500" 
                               : isWeekendDay 
                               ? "bg-yellow-50 dark:bg-yellow-950/20" 
                               : ""
