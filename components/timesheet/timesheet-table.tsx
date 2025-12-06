@@ -28,6 +28,16 @@ interface TimesheetTableProps {
 
 const dayNames = ["вс", "пн", "вт", "ср", "чт", "пт", "сб"]
 
+const attendanceOptions: { value: AttendanceCode; label: string; description: string }[] = [
+  { value: "8", label: "8", description: "Полный день (8 часов)" },
+  { value: "4", label: "4", description: "Неполный день (4 часа)" },
+  { value: "Н", label: "Н", description: "Отсутствовал" },
+  { value: "У", label: "У", description: "Уволен" },
+  { value: "О", label: "О", description: "Отпуск" },
+  { value: "Б", label: "Б", description: "Болел" },
+  { value: "clear", label: "—", description: "Очистить" },
+]
+
 export function TimesheetTable({ employees }: TimesheetTableProps) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [timesheetData, setTimesheetData] = useState<TimesheetData>({})
@@ -68,16 +78,6 @@ export function TimesheetTable({ employees }: TimesheetTableProps) {
     return timesheetData[employeeId]?.[date] || ""
   }
 
-  const attendanceOptions: { value: AttendanceCode; label: string; description: string }[] = [
-    { value: "8", label: "8", description: "Полный день (8 часов)" },
-    { value: "4", label: "4", description: "Неполный день (4 часа)" },
-    { value: "Н", label: "Н", description: "Отсутствовал" },
-    { value: "У", label: "У", description: "Уволен" },
-    { value: "О", label: "О", description: "Отпуск" },
-    { value: "Б", label: "Б", description: "Болел" },
-    { value: "clear", label: "—", description: "Очистить" },
-  ]
-
   const handlePreviousMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))
   }
@@ -90,15 +90,15 @@ export function TimesheetTable({ employees }: TimesheetTableProps) {
     setCurrentDate(new Date())
   }
 
-  const getCodeDescription = (code: AttendanceCode): string => {
-    const descriptions: Record<AttendanceCode, string> = {
+  const getCodeDescription = (code: AttendanceCode | ""): string => {
+    if (!code) return ""
+    const descriptions: Record<string, string> = {
       "8": "Полный день (8 часов)",
       "4": "Неполный день (4 часа)",
       "Н": "Отсутствовал",
       "У": "Уволен",
       "О": "Отпуск",
       "Б": "Болел",
-      "": "",
     }
     return descriptions[code] || ""
   }
