@@ -6,8 +6,7 @@ import { IconPlus, IconSearch } from "@tabler/icons-react"
 import { Input } from "@/components/ui/input"
 
 const filters = [
-  { id: "incoming", label: "Входящие" },
-  { id: "outgoing", label: "Исходящие" },
+  { id: "incoming", label: "Документы" },
   { id: "templates", label: "Шаблоны" },
 ]
 
