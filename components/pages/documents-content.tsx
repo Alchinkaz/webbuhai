@@ -5,7 +5,6 @@ import { DocumentsTable } from "@/components/documents-table"
 import * as React from "react"
 import { getDocuments, type SavedDocument, deleteDocument } from "@/lib/documents"
 import { DocumentStatusFilter } from "@/components/document-status-filter"
-import { CreateDocumentModal } from "@/components/create-document-modal"
 import { EditDocumentModal } from "@/components/edit-document-modal"
 import { hasTemplateForType } from "@/lib/storage"
 import { DOCUMENT_TYPES } from "@/lib/document-types"
@@ -20,7 +19,6 @@ import { getTemplatesByType } from "@/lib/storage"
 import type { Template } from "@/lib/storage"
 
 export function DocumentsContent() {
-  const [showCreateModal, setShowCreateModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editDocumentId, setEditDocumentId] = useState<string | null>(null)
   const [editTemplateId, setEditTemplateId] = useState<string>("")
@@ -35,10 +33,27 @@ export function DocumentsContent() {
   const [invoiceHasTemplate, setInvoiceHasTemplate] = useState(false)
   const [showUpload, setShowUpload] = useState(false)
   const [templates, setTemplates] = useState<Template[]>([])
+  const [allTemplates, setAllTemplates] = useState<Template[]>([])
 
   React.useEffect(() => {
     console.log("[v0] Documents updated, current count:", docs.length)
   }, [docs])
+
+  // Load all templates for dropdown menu
+  React.useEffect(() => {
+    const loadAllTemplates = async () => {
+      const { getTemplates } = await import("@/lib/storage")
+      const all = await getTemplates()
+      setAllTemplates(all)
+    }
+    loadAllTemplates()
+
+    const handleUpdate = () => loadAllTemplates()
+    if (typeof window !== "undefined") {
+      window.addEventListener("templates-updated", handleUpdate)
+      return () => window.removeEventListener("templates-updated", handleUpdate)
+    }
+  }, [])
 
   React.useEffect(() => {
     const checkTemplates = async () => {
@@ -159,11 +174,25 @@ export function DocumentsContent() {
     }
   }
 
-  const handleCreateSuccess = (templateId: string, metadata: any) => {
-    console.log("[v0] Create success, metadata:", metadata)
+  const handleTemplateSelect = async (templateId: string) => {
+    console.log("[v0] Template selected:", templateId)
+    // Find the selected template to get document type
+    const selectedTemplate = allTemplates.find(t => t.id === templateId)
+    const documentTypeName = selectedTemplate?.documentType 
+      ? DOCUMENT_TYPES.find(dt => dt.id === selectedTemplate.documentType)?.name || "Счет на оплату"
+      : "Счет на оплату"
+    
+    // Create default metadata for new document
+    const defaultMetadata = {
+      name: `Новый документ ${new Date().toLocaleDateString()}`,
+      documentType: documentTypeName,
+      date: new Date().toISOString().split("T")[0],
+      counterparty: "",
+      status: "Черновик",
+    }
     setEditTemplateId(templateId)
     setEditDocumentId(null)
-    setNewDocumentMetadata(metadata)
+    setNewDocumentMetadata(defaultMetadata)
     setShowEditModal(true)
   }
 
@@ -328,7 +357,8 @@ export function DocumentsContent() {
     <div className="flex flex-col h-full">
       <div className="shrink-0">
         <DocumentStatusFilter
-          onCreateClick={() => setShowCreateModal(true)}
+          onTemplateSelect={handleTemplateSelect}
+          templates={allTemplates}
           createButtonDisabled={loading || !hasAnyTemplate}
           activeFilter={activeFilter}
           onFilterChange={handleFilterChange}
@@ -359,20 +389,13 @@ export function DocumentsContent() {
       </div>
 
       {hasAnyTemplate && (
-        <>
-          <CreateDocumentModal
-            open={showCreateModal}
-            onClose={() => setShowCreateModal(false)}
-            onSuccess={handleCreateSuccess}
-          />
-          <EditDocumentModal
-            isOpen={showEditModal}
-            onClose={handleEditModalClose}
-            templateId={editTemplateId}
-            documentId={editDocumentId}
-            documentMetadata={newDocumentMetadata}
-          />
-        </>
+        <EditDocumentModal
+          isOpen={showEditModal}
+          onClose={handleEditModalClose}
+          templateId={editTemplateId}
+          documentId={editDocumentId}
+          documentMetadata={newDocumentMetadata}
+        />
       )}
     </div>
   )

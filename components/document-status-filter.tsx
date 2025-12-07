@@ -2,8 +2,15 @@
 
 import * as React from "react"
 import { Button } from "@/components/ui/button"
-import { IconPlus, IconSearch } from "@tabler/icons-react"
+import { IconPlus, IconSearch, IconFileText } from "@tabler/icons-react"
 import { Input } from "@/components/ui/input"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import type { Template } from "@/lib/storage"
 
 const filters = [
   { id: "incoming", label: "Документы" },
@@ -11,7 +18,9 @@ const filters = [
 ]
 
 interface DocumentStatusFilterProps {
-  onCreateClick: () => void
+  onCreateClick?: () => void
+  onTemplateSelect?: (templateId: string) => void
+  templates?: Template[]
   createButtonDisabled?: boolean
   activeFilter?: string
   onFilterChange?: (filterId: string) => void
@@ -20,6 +29,8 @@ interface DocumentStatusFilterProps {
 
 export function DocumentStatusFilter({
   onCreateClick,
+  onTemplateSelect,
+  templates = [],
   createButtonDisabled,
   activeFilter: externalActiveFilter,
   onFilterChange,
@@ -34,6 +45,12 @@ export function DocumentStatusFilter({
       onFilterChange(filterId)
     } else {
       setInternalActiveFilter(filterId)
+    }
+  }
+
+  const handleTemplateSelect = (templateId: string) => {
+    if (onTemplateSelect) {
+      onTemplateSelect(templateId)
     }
   }
 
@@ -63,10 +80,33 @@ export function DocumentStatusFilter({
             <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input type="search" placeholder="Поиск документов..." className="pl-9" />
           </div>
-          <Button onClick={onCreateClick} disabled={createButtonDisabled}>
-            <IconPlus className="h-4 w-4 mr-2" />
-            Новый документ
-          </Button>
+          {templates.length > 0 && onTemplateSelect ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button disabled={createButtonDisabled}>
+                  <IconPlus className="h-4 w-4 mr-2" />
+                  Новый документ
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                {templates.map((template) => (
+                  <DropdownMenuItem
+                    key={template.id}
+                    onClick={() => handleTemplateSelect(template.id)}
+                    className="cursor-pointer"
+                  >
+                    <IconFileText className="h-4 w-4 mr-2" />
+                    <span>{template.name}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button onClick={onCreateClick} disabled={createButtonDisabled}>
+              <IconPlus className="h-4 w-4 mr-2" />
+              Новый документ
+            </Button>
+          )}
         </div>
       )}
     </>
