@@ -1,6 +1,8 @@
 "use client"
 
 import * as React from "react"
+import { usePathname } from "next/navigation"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { IconPlus, IconSearch, IconFileText } from "@tabler/icons-react"
 import { Input } from "@/components/ui/input"
