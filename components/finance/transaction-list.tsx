@@ -4,17 +4,20 @@ import { useState, useMemo } from "react"
 import { useFinance } from "@/lib/finance-context"
 import { formatCurrency, formatDate } from "@/lib/finance-utils"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Edit, MoreHorizontal, Trash2, Search, Filter, ArrowUp, ArrowDown } from "lucide-react"
+import { Edit, MoreHorizontal, Trash2, Search, Filter, ArrowUp, ArrowDown, CalendarIcon } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { TransactionForm } from "@/components/finance/transaction-form"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { ReactNode } from "react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
+import type { DateRange } from "react-day-picker"
+import { ru } from "date-fns/locale"
 
 // Функция для сокращения текста
 const truncateText = (text: string, maxLength = 30) => {
@@ -69,6 +72,7 @@ export function TransactionList({ filterByType, actionButtons }: TransactionList
   const [activeTypeTab, setActiveTypeTab] = useState<"expense" | "income">("expense")
   const [filterType, setFilterType] = useState<string>("income")
   const [filterCategory, setFilterCategory] = useState<string>("all")
+  const [selectedAccountId, setSelectedAccountId] = useState<string>("all")
   const [limit, setLimit] = useState<number>(50)
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [selectedTransactions, setSelectedTransactions] = useState<Set<string>>(new Set())
@@ -88,6 +92,10 @@ export function TransactionList({ filterByType, actionButtons }: TransactionList
   // Состояние для сортировки
   const [sortColumn, setSortColumn] = useState<string>("date")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
+
+  // Состояние для фильтрации по дате
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
+  const [calendarOpen, setCalendarOpen] = useState(false)
 
   // Функция сортировки транзакций
   const sortTransactions = (transactions: any[], column: string, direction: "asc" | "desc") => {
@@ -155,12 +163,38 @@ export function TransactionList({ filterByType, actionButtons }: TransactionList
     const filtered = transactions.filter((t) => {
       if (t.type !== typeToFilter) return false
       if (filterCategory !== "all" && t.categoryId !== filterCategory) return false
+      if (selectedAccountId !== "all" && t.accountId !== selectedAccountId) return false
+
+      // Добавлен фильтр по диапазону дат
+      if (dateRange?.from) {
+        const transactionDate = new Date(t.date)
+        const fromDate = new Date(dateRange.from)
+        fromDate.setHours(0, 0, 0, 0)
+
+        if (transactionDate < fromDate) return false
+
+        if (dateRange.to) {
+          const toDate = new Date(dateRange.to)
+          toDate.setHours(23, 59, 59, 999)
+          if (transactionDate > toDate) return false
+        }
+      }
+
       return true
     })
 
     // Применяем сортировку
     return sortTransactions(filtered, sortColumn, sortDirection)
-  }, [transactions, filterByType, activeTypeTab, filterCategory, sortColumn, sortDirection])
+  }, [
+    transactions,
+    filterByType,
+    activeTypeTab,
+    filterCategory,
+    selectedAccountId,
+    sortColumn,
+    sortDirection,
+    dateRange,
+  ])
 
   const totalPages = Math.ceil(allFilteredTransactions.length / limit)
   const startIndex = (currentPage - 1) * limit
@@ -352,6 +386,31 @@ export function TransactionList({ filterByType, actionButtons }: TransactionList
     }
   }
 
+  const formatAccountNumber = (account: any) => {
+    if (!account) return ""
+    const accountNumber = account.accountNumber || account.id
+    const lastFour = accountNumber.slice(-4)
+    return `${account.name} ····${lastFour}`
+  }
+
+  const formatDateRangeText = () => {
+    if (!dateRange?.from) return "Все даты"
+
+    const formatDate = (date: Date) => {
+      return date.toLocaleDateString("ru-RU", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })
+    }
+
+    if (dateRange.to) {
+      return `${formatDate(dateRange.from)} - ${formatDate(dateRange.to)}`
+    }
+
+    return formatDate(dateRange.from)
+  }
+
   return (
     <>
       <div className="flex flex-col h-full">
@@ -365,6 +424,23 @@ export function TransactionList({ filterByType, actionButtons }: TransactionList
                   <TabsTrigger value="income">Доходы</TabsTrigger>
                 </TabsList>
               </Tabs>
+              <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue>
+                    {selectedAccountId === "all"
+                      ? "Все счета"
+                      : formatAccountNumber(accounts.find((a) => a.id === selectedAccountId))}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Все счета</SelectItem>
+                  {accounts.map((account) => (
+                    <SelectItem key={account.id} value={account.id}>
+                      {formatAccountNumber(account)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Select value={filterCategory} onValueChange={setFilterCategory}>
                 <SelectTrigger className="w-10 h-10 p-0 flex items-center justify-center [&>svg:last-child]:hidden">
                   <Filter className="h-4 w-4" />
@@ -378,6 +454,48 @@ export function TransactionList({ filterByType, actionButtons }: TransactionList
                   ))}
                 </SelectContent>
               </Select>
+              {/* Кнопка календаря с поповером */}
+              <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={dateRange?.from ? "default" : "outline"}
+                    className={cn(
+                      "h-10 justify-start text-left font-normal",
+                      !dateRange?.from && "text-muted-foreground",
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formatDateRangeText()}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="range"
+                    defaultMonth={dateRange?.from}
+                    selected={dateRange}
+                    onSelect={setDateRange}
+                    numberOfMonths={2}
+                    locale={ru}
+                    weekStartsOn={1}
+                    className="rounded-lg"
+                  />
+                  <div className="flex items-center justify-between gap-2 p-3 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setDateRange(undefined)
+                        setCalendarOpen(false)
+                      }}
+                    >
+                      Сбросить
+                    </Button>
+                    <Button size="sm" onClick={() => setCalendarOpen(false)}>
+                      Применить
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="flex items-center gap-2">{actionButtons}</div>
@@ -452,6 +570,7 @@ export function TransactionList({ filterByType, actionButtons }: TransactionList
                           onCheckedChange={handleSelectAll}
                         />
                       </th>
+                      <th className="w-16 h-10 px-2 text-left align-middle font-medium text-sm whitespace-nowrap">№</th>
                       <th
                         className="w-24 h-10 px-2 text-left align-middle font-medium text-sm cursor-pointer hover:bg-muted/50 whitespace-nowrap"
                         onClick={() => handleSort("date")}
@@ -467,40 +586,12 @@ export function TransactionList({ filterByType, actionButtons }: TransactionList
                         </div>
                       </th>
                       <th
-                        className="w-20 h-10 px-2 text-left align-middle font-medium text-sm cursor-pointer hover:bg-muted/50 whitespace-nowrap"
-                        onClick={() => handleSort("type")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Тип
-                          {sortColumn === "type" &&
-                            (sortDirection === "asc" ? (
-                              <ArrowUp className="h-3 w-3" />
-                            ) : (
-                              <ArrowDown className="h-3 w-3" />
-                            ))}
-                        </div>
-                      </th>
-                      <th
                         className="w-28 h-10 px-2 text-left align-middle font-medium text-sm cursor-pointer hover:bg-muted/50 whitespace-nowrap"
                         onClick={() => handleSort("category")}
                       >
                         <div className="flex items-center gap-1">
                           Категория
                           {sortColumn === "category" &&
-                            (sortDirection === "asc" ? (
-                              <ArrowUp className="h-3 w-3" />
-                            ) : (
-                              <ArrowDown className="h-3 w-3" />
-                            ))}
-                        </div>
-                      </th>
-                      <th
-                        className="w-28 h-10 px-2 text-left align-middle font-medium text-sm cursor-pointer hover:bg-muted/50 whitespace-nowrap"
-                        onClick={() => handleSort("account")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Счёт
-                          {sortColumn === "account" &&
                             (sortDirection === "asc" ? (
                               <ArrowUp className="h-3 w-3" />
                             ) : (
@@ -554,7 +645,7 @@ export function TransactionList({ filterByType, actionButtons }: TransactionList
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredTransactions.map((transaction) => {
+                    {filteredTransactions.map((transaction, index) => {
                       const account = accounts.find((a) => a.id === transaction.accountId)
                       const toAccount = transaction.toAccountId
                         ? accounts.find((a) => a.id === transaction.toAccountId)
@@ -574,17 +665,15 @@ export function TransactionList({ filterByType, actionButtons }: TransactionList
                               onCheckedChange={(checked) => handleSelectTransaction(transaction.id, checked as boolean)}
                             />
                           </td>
+                          <td className="w-16 p-2 align-middle text-sm text-muted-foreground">
+                            {startIndex + index + 1}
+                          </td>
                           <td className="w-24 p-2 align-middle text-sm whitespace-nowrap overflow-hidden text-ellipsis">
                             {new Date(transaction.date).toLocaleDateString("ru-RU", {
                               day: "2-digit",
                               month: "2-digit",
                               year: "numeric",
                             })}
-                          </td>
-                          <td className="w-20 p-2 align-middle">
-                            <Badge className={cn("font-medium text-sm px-1 py-0", getTypeColor(transaction.type))}>
-                              {getTypeLabel(transaction.type)}
-                            </Badge>
                           </td>
                           <td className="w-28 p-2 align-middle">
                             {category && transaction.type !== "transfer" ? (
@@ -602,32 +691,6 @@ export function TransactionList({ filterByType, actionButtons }: TransactionList
                               </div>
                             ) : (
                               <span className="text-sm">-</span>
-                            )}
-                          </td>
-                          <td className="w-28 p-2 align-middle">
-                            {transaction.type === "transfer" && toAccount ? (
-                              <div className="text-sm">
-                                <div
-                                  className="font-medium whitespace-nowrap overflow-hidden text-ellipsis"
-                                  title={account?.name}
-                                >
-                                  {truncateText(account?.name || "-", 12)}
-                                </div>
-                                <div className="text-center text-muted-foreground">→</div>
-                                <div
-                                  className="font-medium whitespace-nowrap overflow-hidden text-ellipsis"
-                                  title={toAccount.name}
-                                >
-                                  {truncateText(toAccount.name, 12)}
-                                </div>
-                              </div>
-                            ) : (
-                              <span
-                                className="text-sm whitespace-nowrap overflow-hidden text-ellipsis"
-                                title={account?.name}
-                              >
-                                {truncateText(account?.name || "-", 15)}
-                              </span>
                             )}
                           </td>
                           <td

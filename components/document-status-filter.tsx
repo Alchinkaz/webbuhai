@@ -13,7 +13,8 @@ import {
 import type { Template } from "@/lib/storage"
 
 const filters = [
-  { id: "incoming", label: "Документы" },
+  { id: "incoming", label: "Входящие" },
+  { id: "outgoing", label: "Исходящие" },
   { id: "templates", label: "Шаблоны" },
 ]
 

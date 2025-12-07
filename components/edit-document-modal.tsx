@@ -205,10 +205,11 @@ export function EditDocumentModal({
     }
 
     // Trigger documents list refresh
-    // Note: Storage events are automatically dispatched by localStorage.setItem in documents.ts
     if (typeof window !== "undefined") {
       console.log("[v0] Dispatching documents-updated event")
       window.dispatchEvent(new Event("documents-updated"))
+      // Also dispatch storage event for cross-tab sync
+      window.dispatchEvent(new Event("storage"))
     }
 
     onClose()

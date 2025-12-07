@@ -49,8 +49,6 @@ export async function saveTemplate(template: Template & { content: ArrayBuffer }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(storageTemplates))
     console.log("[v0] Template saved to Supabase")
 
-    // Storage events are automatically dispatched by browser for other tabs
-    // Custom event for same-tab sync
     if (typeof window !== "undefined") {
       window.dispatchEvent(new Event("templates-updated"))
     }
@@ -158,8 +156,6 @@ export async function deleteTemplate(id: string): Promise<void> {
   }))
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(storageTemplates))
-  // Storage events are automatically dispatched by browser for other tabs
-  // Custom event for same-tab sync
   if (typeof window !== "undefined") {
     window.dispatchEvent(new Event("templates-updated"))
   }

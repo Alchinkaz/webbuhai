@@ -105,42 +105,23 @@ export function DocumentsContent() {
       setDocs(loadedDocs)
     }
     load()
-    
     const handler = () => {
       console.log("[v0] Documents update event triggered")
       load()
     }
-    
-    const storageHandler = (e: StorageEvent) => {
-      // Only handle storage events for documents key
-      if (e.key === "documents" && e.newValue) {
-        console.log("[v0] Storage event triggered for documents")
-        load()
-      }
-    }
-    
-    if (typeof window !== "undefined") {
-      window.addEventListener("documents-updated", handler)
-      window.addEventListener("focus", handler)
-      window.addEventListener("storage", storageHandler)
-      window.addEventListener("pageshow", handler)
-      window.addEventListener("popstate", handler)
-    }
-    if (typeof document !== "undefined") {
-      document.addEventListener("visibilitychange", handler)
-    }
-    
+    if (typeof window !== "undefined") window.addEventListener("documents-updated", handler)
+    if (typeof window !== "undefined") window.addEventListener("focus", handler)
+    if (typeof document !== "undefined") document.addEventListener("visibilitychange", handler)
+    if (typeof window !== "undefined") window.addEventListener("pageshow", handler)
+    if (typeof window !== "undefined") window.addEventListener("popstate", handler)
+    if (typeof window !== "undefined") window.addEventListener("storage", handler)
     return () => {
-      if (typeof window !== "undefined") {
-        window.removeEventListener("documents-updated", handler)
-        window.removeEventListener("focus", handler)
-        window.removeEventListener("storage", storageHandler)
-        window.removeEventListener("pageshow", handler)
-        window.removeEventListener("popstate", handler)
-      }
-      if (typeof document !== "undefined") {
-        document.removeEventListener("visibilitychange", handler)
-      }
+      if (typeof window !== "undefined") window.removeEventListener("documents-updated", handler)
+      if (typeof window !== "undefined") window.removeEventListener("focus", handler)
+      if (typeof document !== "undefined") document.removeEventListener("visibilitychange", handler)
+      if (typeof window !== "undefined") window.removeEventListener("pageshow", handler)
+      if (typeof window !== "undefined") window.removeEventListener("popstate", handler)
+      if (typeof window !== "undefined") window.removeEventListener("storage", handler)
     }
   }, [])
 
@@ -176,15 +157,20 @@ export function DocumentsContent() {
 
   const handleTemplateSelect = async (templateId: string) => {
     console.log("[v0] Template selected:", templateId)
-    // Find the selected template to get document type
+    // Find the selected template to get its name and document type
     const selectedTemplate = allTemplates.find(t => t.id === templateId)
-    const documentTypeName = selectedTemplate?.documentType 
+    if (!selectedTemplate) {
+      console.error("[v0] Template not found:", templateId)
+      return
+    }
+
+    const documentTypeName = selectedTemplate.documentType 
       ? DOCUMENT_TYPES.find(dt => dt.id === selectedTemplate.documentType)?.name || "Счет на оплату"
       : "Счет на оплату"
     
-    // Create default metadata for new document
+    // Use template name as document name
     const defaultMetadata = {
-      name: `Новый документ ${new Date().toLocaleDateString()}`,
+      name: selectedTemplate.name, // Use template name as document name
       documentType: documentTypeName,
       date: new Date().toISOString().split("T")[0],
       counterparty: "",
