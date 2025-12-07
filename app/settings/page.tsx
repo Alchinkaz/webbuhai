@@ -4,15 +4,15 @@ import type React from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import { useNavigation } from "@/hooks/use-navigation"
+import { SettingsContent } from "@/components/pages/settings-content"
 import { useEffect } from "react"
-import { DashboardNewContent } from "@/components/pages/dashboard-new-content"
+import { useNavigation } from "@/hooks/use-navigation"
 
-export default function Page() {
+export default function SettingsPage() {
   const { setCurrentPage } = useNavigation()
-
+  
   useEffect(() => {
-    setCurrentPage("Home")
+    setCurrentPage("settings")
   }, [setCurrentPage])
 
   return (
@@ -31,10 +31,11 @@ export default function Page() {
         </div>
         <div className="flex flex-1 flex-col overflow-y-auto">
           <div className="@container/main flex flex-1 flex-col gap-2">
-            <DashboardNewContent />
+            <SettingsContent />
           </div>
         </div>
       </SidebarInset>
     </SidebarProvider>
   )
 }
+
