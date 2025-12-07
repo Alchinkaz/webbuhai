@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { usePathname } from "next/navigation"
 import { CounterpartiesTable } from "@/components/counterparties-table"
 import { PartyStatusFilter } from "@/components/party-status-filter"
 import { CounterpartyDialog, type Counterparty } from "@/components/counterparty-dialog"
@@ -25,10 +26,35 @@ const mockCounterparties: Counterparty[] = [
   },
 ]
 
-export function PartyContent() {
+interface PartyContentProps {
+  initialFilter?: string
+}
+
+export function PartyContent({ initialFilter }: PartyContentProps = {}) {
+  const pathname = usePathname()
   const { toast } = useToast()
-  const [activeFilter, setActiveFilter] = React.useState("counterparties")
+  
+  // Determine active filter from URL
+  const getActiveFilterFromPath = () => {
+    if (pathname) {
+      const pathParts = pathname.split("/")
+      const section = pathParts[pathParts.length - 1]
+      if (["counterparties", "contracts", "reconciliation"].includes(section)) {
+        return section
+      }
+    }
+    return initialFilter || "counterparties"
+  }
+  
+  const [activeFilter, setActiveFilter] = React.useState(getActiveFilterFromPath())
   const [searchQuery, setSearchQuery] = React.useState("")
+
+  React.useEffect(() => {
+    const filterFromPath = getActiveFilterFromPath()
+    if (filterFromPath !== activeFilter) {
+      setActiveFilter(filterFromPath)
+    }
+  }, [pathname])
 
   const [counterparties, setCounterparties] = React.useState<Counterparty[]>(mockCounterparties)
   const [counterpartyDialogOpen, setCounterpartyDialogOpen] = React.useState(false)

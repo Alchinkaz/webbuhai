@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { usePathname } from "next/navigation"
 import { DocumentsTable } from "@/components/documents-table"
 import * as React from "react"
 import { getDocuments, type SavedDocument, deleteDocument } from "@/lib/documents"
@@ -16,7 +17,12 @@ import { TemplateUpload } from "@/components/template-upload"
 import { TemplateList } from "@/components/template-list"
 import type { Template } from "@/lib/storage"
 
-export function DocumentsContent() {
+interface DocumentsContentProps {
+  initialFilter?: string
+}
+
+export function DocumentsContent({ initialFilter }: DocumentsContentProps) {
+  const pathname = usePathname()
   const [showEditModal, setShowEditModal] = useState(false)
   const [editDocumentId, setEditDocumentId] = useState<string | null>(null)
   const [editTemplateId, setEditTemplateId] = useState<string>("")
@@ -24,9 +30,29 @@ export function DocumentsContent() {
   const [hasAnyTemplate, setHasAnyTemplate] = useState(false)
   const [loading, setLoading] = useState(true)
   const [docs, setDocs] = React.useState<SavedDocument[]>([])
-  const [activeFilter, setActiveFilter] = React.useState("incoming")
+  
+  // Determine active filter from URL
+  const getActiveFilterFromPath = () => {
+    if (pathname) {
+      const pathParts = pathname.split("/")
+      const section = pathParts[pathParts.length - 1]
+      if (["incoming", "outgoing", "templates"].includes(section)) {
+        return section
+      }
+    }
+    return initialFilter || "incoming"
+  }
+  
+  const [activeFilter, setActiveFilter] = React.useState(getActiveFilterFromPath())
   const { currentPage } = useNavigation()
   const { t } = useLanguage()
+
+  React.useEffect(() => {
+    const filterFromPath = getActiveFilterFromPath()
+    if (filterFromPath !== activeFilter) {
+      setActiveFilter(filterFromPath)
+    }
+  }, [pathname])
 
   const [showUpload, setShowUpload] = useState(false)
   const [templates, setTemplates] = useState<Template[]>([])

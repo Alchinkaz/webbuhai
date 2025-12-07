@@ -1,42 +1,15 @@
 "use client"
 
-import type React from "react"
-import { AppSidebar } from "@/components/app-sidebar"
-import { SiteHeader } from "@/components/site-header"
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import { DocumentsContent } from "@/components/pages/documents-content"
 import { useEffect } from "react"
-import { useNavigation } from "@/hooks/use-navigation"
+import { useRouter } from "next/navigation"
 
 export default function DocumentsPage() {
-  const { setCurrentPage } = useNavigation()
-  
+  const router = useRouter()
+
   useEffect(() => {
-    // Устанавливаем текущую страницу для корректной работы навигации
-    setCurrentPage("documents")
-  }, [setCurrentPage])
+    // Redirect to default section
+    router.replace("/documents/incoming")
+  }, [router])
 
-  return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 64)",
-          "--header-height": "calc(var(--spacing) * 16)",
-        } as React.CSSProperties
-      }
-    >
-      <AppSidebar variant="inset" collapsible="icon" />
-      <SidebarInset className="overflow-hidden md:h-[calc(100vh-16px)]">
-        <div className="shrink-0">
-          <SiteHeader />
-        </div>
-        <div className="flex flex-1 flex-col overflow-y-auto">
-          <div className="@container/main flex flex-1 flex-col gap-2">
-            <DocumentsContent />
-          </div>
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
-  )
+  return null
 }
-

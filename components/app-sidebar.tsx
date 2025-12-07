@@ -96,17 +96,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
     {
       title: t("documents"),
-      url: "/documents",
+      url: "/documents/incoming",
       icon: IconFileText,
     },
     {
       title: t("inventory"),
-      url: "/inventory",
+      url: "/inventory/warehouse",
       icon: IconDatabase,
     },
     {
       title: t("party"),
-      url: "/party",
+      url: "/party/counterparties",
       icon: IconUsers,
     },
     {
@@ -116,7 +116,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
     {
       title: t("settings"),
-      url: "/settings",
+      url: "/settings/general",
       icon: IconSettings,
     },
   ]

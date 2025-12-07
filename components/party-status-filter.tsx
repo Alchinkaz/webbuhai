@@ -1,12 +1,14 @@
 "use client"
+import { usePathname } from "next/navigation"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { IconPlus, IconSearch } from "@tabler/icons-react"
 import { Input } from "@/components/ui/input"
 
 const filters = [
-  { id: "counterparties", label: "Контрагенты" },
-  { id: "contracts", label: "Договоры" },
-  { id: "reconciliation", label: "Акты сверок" },
+  { id: "counterparties", label: "Контрагенты", path: "/party/counterparties" },
+  { id: "contracts", label: "Договоры", path: "/party/contracts" },
+  { id: "reconciliation", label: "Акты сверок", path: "/party/reconciliation" },
 ]
 
 interface PartyStatusFilterProps {
@@ -33,17 +35,22 @@ export function PartyStatusFilter({
     <>
       <div className="sticky top-0 z-10 border-b px-4 lg:px-6 mb-3 pt-4 pb-0 bg-background/95 backdrop-blur-md">
         <nav className="flex gap-6 overflow-x-auto" aria-label="Party status filter">
-          {filters.map((filter) => (
-            <button
-              key={filter.id}
-              onClick={() => onFilterChange(filter.id)}
-              className={`text-muted-foreground hover:text-foreground relative whitespace-nowrap border-b-2 text-sm font-medium transition-colors pb-3.5 ${
-                activeFilter === filter.id ? "text-foreground border-foreground" : "border-transparent"
-              }`}
-            >
-              {filter.label}
-            </button>
-          ))}
+          {filters.map((filter) => {
+            const pathname = usePathname()
+            const isActive = activeFilter === filter.id || pathname === filter.path
+            return (
+              <Link
+                key={filter.id}
+                href={filter.path}
+                onClick={() => onFilterChange(filter.id)}
+                className={`text-muted-foreground hover:text-foreground relative whitespace-nowrap border-b-2 text-sm font-medium transition-colors pb-3.5 ${
+                  isActive ? "text-foreground border-foreground" : "border-transparent"
+                }`}
+              >
+                {filter.label}
+              </Link>
+            )
+          })}
         </nav>
       </div>
 

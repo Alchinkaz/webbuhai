@@ -1,6 +1,8 @@
 "use client"
 
 import * as React from "react"
+import { usePathname } from "next/navigation"
+import Link from "next/link"
 import { IconPlus, IconPencil, IconTrash, IconPackage, IconSearch } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter, CardAction } from "@/components/ui/card"
@@ -15,8 +17,8 @@ import { useToast } from "@/hooks/use-toast"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 const filters = [
-  { id: "warehouse", label: "Склад" },
-  { id: "nomenclature", label: "Номенклатура" },
+  { id: "warehouse", label: "Склад", path: "/inventory/warehouse" },
+  { id: "nomenclature", label: "Номенклатура", path: "/inventory/nomenclature" },
 ]
 
 const mockWarehouses: Warehouse[] = [
@@ -33,7 +35,12 @@ const mockResourcesData: Resource[] = [
   { id: "5", warehouseId: "2", name: "Гвозди", type: "Крепеж", quantity: 5000, unit: "шт", price: 2 },
 ]
 
-export function InventoryContent() {
+interface InventoryContentProps {
+  initialFilter?: string
+}
+
+export function InventoryContent({ initialFilter }: InventoryContentProps = {}) {
+  const pathname = usePathname()
   const { t } = useLanguage()
   const { toast } = useToast()
   const { selectedWarehouse, setSelectedWarehouse } = useNavigation()
@@ -41,8 +48,28 @@ export function InventoryContent() {
   const [resources, setResources] = React.useState<Resource[]>(mockResourcesData)
   const [dialogOpen, setDialogOpen] = React.useState(false)
   const [editingWarehouse, setEditingWarehouse] = React.useState<Warehouse | null>(null)
-  const [activeFilter, setActiveFilter] = React.useState("warehouse")
+  
+  // Determine active filter from URL
+  const getActiveFilterFromPath = () => {
+    if (pathname) {
+      const pathParts = pathname.split("/")
+      const section = pathParts[pathParts.length - 1]
+      if (["warehouse", "nomenclature"].includes(section)) {
+        return section
+      }
+    }
+    return initialFilter || "warehouse"
+  }
+  
+  const [activeFilter, setActiveFilter] = React.useState(getActiveFilterFromPath())
   const [searchQuery, setSearchQuery] = React.useState("")
+
+  React.useEffect(() => {
+    const filterFromPath = getActiveFilterFromPath()
+    if (filterFromPath !== activeFilter) {
+      setActiveFilter(filterFromPath)
+    }
+  }, [pathname])
 
   const warehousesWithCounts = React.useMemo(() => {
     return warehouses.map((warehouse) => ({
@@ -254,20 +281,23 @@ export function InventoryContent() {
     <div className="flex flex-col h-full">
       <div className="shrink-0 border-b px-4 lg:px-6 mb-3 pt-4 pb-0 bg-background/95 backdrop-blur-md sticky top-0 z-10">
         <nav className="flex gap-6 overflow-x-auto" aria-label="Inventory tabs">
-          {filters.map((filter) => (
-            <button
-              key={filter.id}
-              onClick={() => {
-                setActiveFilter(filter.id)
-                setSearchQuery("")
-              }}
-              className={`text-muted-foreground hover:text-foreground relative whitespace-nowrap border-b-2 text-sm font-medium transition-colors pb-3.5 ${
-                activeFilter === filter.id ? "text-foreground border-foreground" : "border-transparent"
-              }`}
-            >
-              {filter.label}
-            </button>
-          ))}
+          {filters.map((filter) => {
+            const isActive = activeFilter === filter.id || pathname === filter.path
+            return (
+              <Link
+                key={filter.id}
+                href={filter.path}
+                onClick={() => {
+                  setSearchQuery("")
+                }}
+                className={`text-muted-foreground hover:text-foreground relative whitespace-nowrap border-b-2 text-sm font-medium transition-colors pb-3.5 ${
+                  isActive ? "text-foreground border-foreground" : "border-transparent"
+                }`}
+              >
+                {filter.label}
+              </Link>
+            )
+          })}
         </nav>
       </div>
 

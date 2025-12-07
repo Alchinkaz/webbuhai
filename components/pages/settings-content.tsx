@@ -2,7 +2,9 @@
 
 import { useLanguage } from "@/hooks/use-language"
 import { useTheme } from "next-themes"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { usePathname } from "next/navigation"
+import Link from "next/link"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
@@ -90,10 +92,10 @@ function EditableField({
 }
 
 const filters = [
-  { id: "general", label: "Основные" },
-  { id: "company", label: "Компания" },
-  { id: "account", label: "Аккаунт" },
-  { id: "payment", label: "Оплата" },
+  { id: "general", label: "Основные", path: "/settings/general" },
+  { id: "company", label: "Компания", path: "/settings/company" },
+  { id: "account", label: "Аккаунт", path: "/settings/account" },
+  { id: "payment", label: "Оплата", path: "/settings/payment" },
 ]
 
 function AddDataButton() {
@@ -107,12 +109,37 @@ function AddDataButton() {
   )
 }
 
-export function SettingsContent() {
+interface SettingsContentProps {
+  initialTab?: string
+}
+
+export function SettingsContent({ initialTab }: SettingsContentProps = {}) {
   const { t } = useLanguage()
   const { theme, setTheme } = useTheme()
-  const [activeTab, setActiveTab] = useState("general")
+  const pathname = usePathname()
+  
+  // Determine active tab from URL
+  const getActiveTabFromPath = () => {
+    if (pathname) {
+      const pathParts = pathname.split("/")
+      const section = pathParts[pathParts.length - 1]
+      if (["general", "company", "account", "payment"].includes(section)) {
+        return section
+      }
+    }
+    return initialTab || "general"
+  }
+  
+  const [activeTab, setActiveTab] = useState(getActiveTabFromPath())
   const [copied, setCopied] = useState(false)
   const userId = "gRGPYbeSngSZvVZbhU2M53XN"
+
+  useEffect(() => {
+    const tabFromPath = getActiveTabFromPath()
+    if (tabFromPath !== activeTab) {
+      setActiveTab(tabFromPath)
+    }
+  }, [pathname])
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(userId)
@@ -124,17 +151,20 @@ export function SettingsContent() {
     <div className="flex flex-col pb-8 h-full">
       <div className="shrink-0 border-b px-4 lg:px-6 mb-2 pt-4 pb-0 bg-background/95 backdrop-blur-md sticky top-0 z-10">
         <nav className="flex gap-6 overflow-x-auto" aria-label="Settings tabs">
-          {filters.map((filter) => (
-            <button
-              key={filter.id}
-              onClick={() => setActiveTab(filter.id)}
-              className={`text-muted-foreground hover:text-foreground relative whitespace-nowrap border-b-2 text-sm font-medium transition-colors pb-3.5 ${
-                activeTab === filter.id ? "text-foreground border-foreground" : "border-transparent"
-              }`}
-            >
-              {filter.label}
-            </button>
-          ))}
+          {filters.map((filter) => {
+            const isActive = activeTab === filter.id || pathname === filter.path
+            return (
+              <Link
+                key={filter.id}
+                href={filter.path}
+                className={`text-muted-foreground hover:text-foreground relative whitespace-nowrap border-b-2 text-sm font-medium transition-colors pb-3.5 ${
+                  isActive ? "text-foreground border-foreground" : "border-transparent"
+                }`}
+              >
+                {filter.label}
+              </Link>
+            )
+          })}
         </nav>
       </div>
 
