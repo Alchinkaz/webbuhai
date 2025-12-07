@@ -45,7 +45,11 @@ export async function saveDocument(doc: Omit<SavedDocument, "id" | "createdAt" |
   const newDoc: SavedDocument = { id: `doc-${Date.now()}`, createdAt: now, updatedAt: now, ...doc }
   all.unshift(newDoc)
   localStorage.setItem(STORAGE_KEY, JSON.stringify(all))
-  if (typeof window !== "undefined") window.dispatchEvent(new Event("documents-updated"))
+  // Storage events are automatically dispatched by browser for other tabs
+  // Custom event for same-tab sync
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("documents-updated"))
+  }
   return newDoc
 }
 
@@ -56,7 +60,11 @@ export async function updateDocument(id: string, patch: Partial<SavedDocument>):
   const updated: SavedDocument = { ...all[idx], ...patch, updatedAt: new Date().toISOString() }
   all[idx] = updated
   localStorage.setItem(STORAGE_KEY, JSON.stringify(all))
-  if (typeof window !== "undefined") window.dispatchEvent(new Event("documents-updated"))
+  // Storage events are automatically dispatched by browser for other tabs
+  // Custom event for same-tab sync
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("documents-updated"))
+  }
   return updated
 }
 
@@ -65,6 +73,10 @@ export async function deleteDocument(id: string): Promise<boolean> {
   const filtered = all.filter((d) => d.id !== id)
   if (filtered.length === all.length) return false // Document not found
   localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered))
-  if (typeof window !== "undefined") window.dispatchEvent(new Event("documents-updated"))
+  // Storage events are automatically dispatched by browser for other tabs
+  // Custom event for same-tab sync
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("documents-updated"))
+  }
   return true
 }

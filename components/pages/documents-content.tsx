@@ -90,23 +90,42 @@ export function DocumentsContent() {
       setDocs(loadedDocs)
     }
     load()
+    
     const handler = () => {
       console.log("[v0] Documents update event triggered")
       load()
     }
-    if (typeof window !== "undefined") window.addEventListener("documents-updated", handler)
-    if (typeof window !== "undefined") window.addEventListener("focus", handler)
-    if (typeof document !== "undefined") document.addEventListener("visibilitychange", handler)
-    if (typeof window !== "undefined") window.addEventListener("pageshow", handler)
-    if (typeof window !== "undefined") window.addEventListener("popstate", handler)
-    if (typeof window !== "undefined") window.addEventListener("storage", handler)
+    
+    const storageHandler = (e: StorageEvent) => {
+      // Only handle storage events for documents key
+      if (e.key === "documents" && e.newValue) {
+        console.log("[v0] Storage event triggered for documents")
+        load()
+      }
+    }
+    
+    if (typeof window !== "undefined") {
+      window.addEventListener("documents-updated", handler)
+      window.addEventListener("focus", handler)
+      window.addEventListener("storage", storageHandler)
+      window.addEventListener("pageshow", handler)
+      window.addEventListener("popstate", handler)
+    }
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", handler)
+    }
+    
     return () => {
-      if (typeof window !== "undefined") window.removeEventListener("documents-updated", handler)
-      if (typeof window !== "undefined") window.removeEventListener("focus", handler)
-      if (typeof document !== "undefined") document.removeEventListener("visibilitychange", handler)
-      if (typeof window !== "undefined") window.removeEventListener("pageshow", handler)
-      if (typeof window !== "undefined") window.removeEventListener("popstate", handler)
-      if (typeof window !== "undefined") window.removeEventListener("storage", handler)
+      if (typeof window !== "undefined") {
+        window.removeEventListener("documents-updated", handler)
+        window.removeEventListener("focus", handler)
+        window.removeEventListener("storage", storageHandler)
+        window.removeEventListener("pageshow", handler)
+        window.removeEventListener("popstate", handler)
+      }
+      if (typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", handler)
+      }
     }
   }, [])
 

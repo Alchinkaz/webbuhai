@@ -58,10 +58,37 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     try {
       const data = { accounts, categories, counterparties, projects, transactions, invoices }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+      // Storage events are automatically dispatched by browser for other tabs
     } catch (error) {
       console.error("Failed to save to localStorage:", error)
     }
   }, [accounts, categories, counterparties, projects, transactions, invoices])
+
+  // Listen for storage events from other tabs
+  useEffect(() => {
+    if (typeof window === "undefined") return
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key !== STORAGE_KEY || !e.newValue) return
+      
+      try {
+        const data = JSON.parse(e.newValue)
+        if (isInitialized.current) {
+          setAccounts(data.accounts || [])
+          setCategories(data.categories || defaultCategories)
+          setCounterparties(data.counterparties || [])
+          setProjects(data.projects || [])
+          setTransactions(data.transactions || [])
+          setInvoices(data.invoices || [])
+        }
+      } catch (error) {
+        console.error("Failed to sync data from storage event:", error)
+      }
+    }
+
+    window.addEventListener("storage", handleStorageChange)
+    return () => window.removeEventListener("storage", handleStorageChange)
+  }, [])
 
   const addAccount = (account: Omit<Account, "id" | "createdAt">) => {
     // Используем функциональное обновление для проверки уникальности на актуальном состоянии
