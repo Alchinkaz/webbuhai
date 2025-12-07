@@ -29,6 +29,7 @@ export function PartyStatusFilter({
   searchQuery,
   onSearchChange,
 }: PartyStatusFilterProps) {
+  const pathname = usePathname()
   const showSearchAndButton = activeFilter === "counterparties"
 
   return (
@@ -36,7 +37,6 @@ export function PartyStatusFilter({
       <div className="sticky top-0 z-10 border-b px-4 lg:px-6 mb-3 pt-4 pb-0 bg-background/95 backdrop-blur-md">
         <nav className="flex gap-6 overflow-x-auto" aria-label="Party status filter">
           {filters.map((filter) => {
-            const pathname = usePathname()
             const isActive = activeFilter === filter.id || pathname === filter.path
             return (
               <Link
