@@ -9,13 +9,11 @@ import { EditDocumentModal } from "@/components/edit-document-modal"
 import { hasTemplateForType } from "@/lib/storage"
 import { DOCUMENT_TYPES } from "@/lib/document-types"
 import { useNavigation } from "@/hooks/use-navigation"
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { IconFileInvoice, IconCheck, IconPlus, IconFileText } from "@tabler/icons-react"
+import { IconPlus, IconFileText } from "@tabler/icons-react"
 import { useLanguage } from "@/hooks/use-language"
 import { TemplateUpload } from "@/components/template-upload"
 import { TemplateList } from "@/components/template-list"
-import { getTemplatesByType } from "@/lib/storage"
 import type { Template } from "@/lib/storage"
 
 export function DocumentsContent() {
@@ -27,10 +25,9 @@ export function DocumentsContent() {
   const [loading, setLoading] = useState(true)
   const [docs, setDocs] = React.useState<SavedDocument[]>([])
   const [activeFilter, setActiveFilter] = React.useState("incoming")
-  const { currentPage, documentType, setDocumentType } = useNavigation()
+  const { currentPage } = useNavigation()
   const { t } = useLanguage()
 
-  const [invoiceHasTemplate, setInvoiceHasTemplate] = useState(false)
   const [showUpload, setShowUpload] = useState(false)
   const [templates, setTemplates] = useState<Template[]>([])
   const [allTemplates, setAllTemplates] = useState<Template[]>([])
@@ -39,12 +36,14 @@ export function DocumentsContent() {
     console.log("[v0] Documents updated, current count:", docs.length)
   }, [docs])
 
-  // Load all templates for dropdown menu
+  // Load all templates for dropdown menu and templates section
   React.useEffect(() => {
     const loadAllTemplates = async () => {
       const { getTemplates } = await import("@/lib/storage")
       const all = await getTemplates()
       setAllTemplates(all)
+      // Also set templates for templates section
+      setTemplates(all)
     }
     loadAllTemplates()
 
@@ -72,31 +71,6 @@ export function DocumentsContent() {
     checkTemplates()
   }, [])
 
-  React.useEffect(() => {
-    const checkInvoiceTemplate = async () => {
-      const hasInvoice = await hasTemplateForType("invoice")
-      setInvoiceHasTemplate(hasInvoice)
-    }
-    checkInvoiceTemplate()
-
-    const handleUpdate = () => checkInvoiceTemplate()
-    window.addEventListener("templates-updated", handleUpdate)
-    return () => window.removeEventListener("templates-updated", handleUpdate)
-  }, [])
-
-  React.useEffect(() => {
-    if (documentType) {
-      const loadTemplates = async () => {
-        const typeTemplates = await getTemplatesByType(documentType)
-        setTemplates(typeTemplates)
-      }
-      loadTemplates()
-
-      const handleUpdate = () => loadTemplates()
-      window.addEventListener("templates-updated", handleUpdate)
-      return () => window.removeEventListener("templates-updated", handleUpdate)
-    }
-  }, [documentType])
 
   React.useEffect(() => {
     const load = async () => {
@@ -193,8 +167,10 @@ export function DocumentsContent() {
 
   const handleUploadComplete = async () => {
     setShowUpload(false)
-    const typeTemplates = await getTemplatesByType(documentType!)
-    setTemplates(typeTemplates)
+    const { getTemplates } = await import("@/lib/storage")
+    const all = await getTemplates()
+    setTemplates(all)
+    setAllTemplates(all)
     const checkTemplates = async () => {
       setLoading(true)
       for (const docType of DOCUMENT_TYPES) {
@@ -212,97 +188,25 @@ export function DocumentsContent() {
   }
 
   const handleTemplateUpdate = async () => {
-    if (documentType) {
-      const typeTemplates = await getTemplatesByType(documentType)
-      setTemplates(typeTemplates)
-    }
+    const { getTemplates } = await import("@/lib/storage")
+    const all = await getTemplates()
+    setTemplates(all)
+    setAllTemplates(all)
   }
 
   const handleFilterChange = (filterId: string) => {
     setActiveFilter(filterId)
-    if (filterId === "templates") {
-      setDocumentType(null)
-    } else if (filterId !== "templates") {
-      setDocumentType(null)
-    }
   }
 
   const renderTemplatesContent = () => {
-    if (!documentType) {
-      const documentTypeCards = [
-        {
-          id: "invoice",
-          title: "Счет на оплату",
-          description: "Шаблон для создания счетов на оплату",
-          icon: IconFileInvoice,
-          hasTemplate: invoiceHasTemplate,
-          onClick: () => setDocumentType("invoice"),
-        },
-      ]
-
-      return (
-        <div className="px-4 lg:px-6">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {documentTypeCards.map((card) => {
-              const Icon = card.icon
-              return (
-                <Card
-                  key={card.id}
-                  className="cursor-pointer transition-all hover:shadow-lg hover:border-primary/50 relative"
-                  onClick={card.onClick}
-                >
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                          <Icon className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <CardTitle>{card.title}</CardTitle>
-                          <CardDescription className="mt-1">{card.description}</CardDescription>
-                        </div>
-                      </div>
-                      {card.hasTemplate && (
-                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500/10">
-                          <IconCheck className="h-4 w-4 text-green-600" />
-                        </div>
-                      )}
-                    </div>
-                  </CardHeader>
-                </Card>
-              )
-            })}
-          </div>
-        </div>
-      )
-    }
-
-    const getDocumentTypeInfo = () => {
-      switch (documentType) {
-        case "invoice":
-          return {
-            title: "Счет на оплату",
-            description: "Управление шаблонами для счетов на оплату",
-          }
-        default:
-          return {
-            title: "Документ",
-            description: "Управление шаблонами документов",
-          }
-      }
-    }
-
-    const info = getDocumentTypeInfo()
-
     return (
       <div className="px-4 lg:px-6">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-semibold">{info.title}</h2>
-            <p className="text-muted-foreground text-sm">{info.description}</p>
+            <h2 className="text-xl font-semibold">Шаблоны документов</h2>
+            <p className="text-muted-foreground text-sm">Управление шаблонами для создания документов</p>
           </div>
           <div className="flex gap-2">
-            {/* Кнопка будет неактивна когда нет шаблонов */}
             <Button onClick={() => setShowUpload(true)} size="sm">
               <IconPlus className="h-4 w-4 mr-2" />
               Загрузить шаблон
@@ -315,7 +219,7 @@ export function DocumentsContent() {
             <TemplateUpload
               onClose={() => setShowUpload(false)}
               onComplete={handleUploadComplete}
-              documentType={documentType}
+              documentType={null}
             />
           </div>
         )}
@@ -348,7 +252,6 @@ export function DocumentsContent() {
           createButtonDisabled={loading || !hasAnyTemplate}
           activeFilter={activeFilter}
           onFilterChange={handleFilterChange}
-          documentType={documentType}
         />
       </div>
 
