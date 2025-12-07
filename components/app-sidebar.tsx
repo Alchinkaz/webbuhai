@@ -86,7 +86,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
     {
       title: t("finance"),
-      url: "/deals",
+      url: "/deals/analytics",
       icon: IconCoin,
     },
     {
@@ -111,7 +111,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
     {
       title: t("hr"),
-      url: "/hr",
+      url: "/hr/departments",
       icon: IconBriefcase2,
     },
     {

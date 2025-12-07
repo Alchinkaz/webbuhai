@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter, usePathname } from "next/navigation"
 import { useFinance } from "@/lib/finance-context"
 import { calculateDashboardMetrics, formatCurrency } from "@/lib/finance-utils"
 import { MetricCard } from "@/components/finance/metric-card"
@@ -15,15 +16,30 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Wallet, TrendingUp, TrendingDown, DollarSign, PlusCircle, Banknote } from "lucide-react"
+import Link from "next/link"
 
 const tabs = [
-  { id: "analytics", label: "Аналитика" },
-  { id: "bank", label: "Банк" },
-  { id: "cash", label: "Касса" },
+  { id: "analytics", label: "Аналитика", path: "/deals/analytics" },
+  { id: "bank", label: "Банк", path: "/deals/bank" },
+  { id: "cash", label: "Касса", path: "/deals/cash" },
 ]
 
-export function FinanceContent() {
-  const [activeTab, setActiveTab] = useState("analytics")
+interface FinanceContentProps {
+  initialTab?: string
+}
+
+export function FinanceContent({ initialTab = "analytics" }: FinanceContentProps) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const [activeTab, setActiveTab] = useState(initialTab)
+
+  useEffect(() => {
+    // Extract tab from pathname
+    const tabFromPath = pathname?.split("/").pop()
+    if (tabFromPath && ["analytics", "bank", "cash"].includes(tabFromPath)) {
+      setActiveTab(tabFromPath)
+    }
+  }, [pathname])
   const { transactions, invoices, accounts } = useFinance()
 
   const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false)
@@ -58,17 +74,20 @@ export function FinanceContent() {
     <div className="flex flex-col h-screen overflow-hidden">
       <div className="shrink-0 border-b px-4 lg:px-6 mb-0 pt-4 pb-0 bg-background/95 backdrop-blur-md z-20">
         <nav className="flex gap-6 overflow-x-auto" aria-label="Finance tabs">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`text-muted-foreground hover:text-foreground relative whitespace-nowrap border-b-2 text-sm font-medium transition-colors pb-3.5 ${
-                activeTab === tab.id ? "text-foreground border-foreground" : "border-transparent"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.id || pathname === tab.path
+            return (
+              <Link
+                key={tab.id}
+                href={tab.path}
+                className={`text-muted-foreground hover:text-foreground relative whitespace-nowrap border-b-2 text-sm font-medium transition-colors pb-3.5 ${
+                  isActive ? "text-foreground border-foreground" : "border-transparent"
+                }`}
+              >
+                {tab.label}
+              </Link>
+            )
+          })}
         </nav>
       </div>
 

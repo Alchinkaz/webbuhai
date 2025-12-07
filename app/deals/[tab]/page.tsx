@@ -7,14 +7,22 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { FinanceContent } from "@/components/pages/finance-content"
 import { useEffect } from "react"
 import { useNavigation } from "@/hooks/use-navigation"
+import { useParams, useRouter } from "next/navigation"
 
-export default function FinancePage() {
+export default function FinanceTabPage() {
   const { setCurrentPage } = useNavigation()
-  
+  const params = useParams()
+  const router = useRouter()
+  const tab = params?.tab as string
+
   useEffect(() => {
-    // Устанавливаем текущую страницу для корректной работы навигации
     setCurrentPage("deals")
-  }, [setCurrentPage])
+    
+    // Redirect to analytics if no tab or invalid tab
+    if (!tab || !["analytics", "bank", "cash"].includes(tab)) {
+      router.replace("/deals/analytics")
+    }
+  }, [setCurrentPage, tab, router])
 
   return (
     <SidebarProvider
@@ -32,7 +40,7 @@ export default function FinancePage() {
         </div>
         <div className="flex flex-1 flex-col overflow-y-auto">
           <div className="@container/main flex flex-1 flex-col gap-2">
-            <FinanceContent />
+            <FinanceContent initialTab={tab || "analytics"} />
           </div>
         </div>
       </SidebarInset>

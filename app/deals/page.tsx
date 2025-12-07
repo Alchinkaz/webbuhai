@@ -3,13 +3,14 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 
-export default function HRPage() {
+export default function FinancePage() {
   const router = useRouter()
 
   useEffect(() => {
-    // Redirect to default section
-    router.replace("/hr/departments")
+    // Redirect to default tab
+    router.replace("/deals/analytics")
   }, [router])
 
   return null
 }
+

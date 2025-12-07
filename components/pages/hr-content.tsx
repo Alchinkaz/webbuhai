@@ -1,6 +1,8 @@
 "use client"
 
 import * as React from "react"
+import { useRouter, usePathname } from "next/navigation"
+import Link from "next/link"
 import { DepartmentsView } from "@/components/departments-view"
 import { EmployeesTable } from "@/components/employees-table"
 import { EmployeeDialog, type Employee } from "@/components/employee-dialog"
@@ -12,11 +14,11 @@ import { IconPlus, IconSearch } from "@tabler/icons-react"
 import { Input } from "@/components/ui/input"
 
 const filters = [
-  { id: "departments", label: "Отделы" },
-  { id: "employees", label: "Сотрудники" },
-  { id: "salary", label: "Зарплата" },
-  { id: "taxes", label: "Налоги" },
-  { id: "timesheet", label: "Табель" },
+  { id: "departments", label: "Отделы", path: "/hr/departments" },
+  { id: "employees", label: "Сотрудники", path: "/hr/employees" },
+  { id: "salary", label: "Зарплата", path: "/hr/salary" },
+  { id: "taxes", label: "Налоги", path: "/hr/taxes" },
+  { id: "timesheet", label: "Табель", path: "/hr/timesheet" },
 ]
 
 const mockDepartments: Department[] = [
@@ -71,11 +73,36 @@ const mockEmployees: Employee[] = [
   },
 ]
 
-export function HRContent() {
+interface HRContentProps {
+  initialFilter?: string
+}
+
+export function HRContent({ initialFilter }: HRContentProps) {
+  const router = useRouter()
+  const pathname = usePathname()
   const { selectedDepartment, setSelectedDepartment } = useNavigation()
   const { toast } = useToast()
-  const [activeFilter, setActiveFilter] = React.useState("departments")
+  
+  // Determine active filter from URL
+  const getActiveFilterFromPath = () => {
+    if (pathname) {
+      const pathParts = pathname.split("/")
+      const section = pathParts[pathParts.length - 1]
+      const filter = filters.find(f => f.path === pathname || f.id === section)
+      return filter?.id || initialFilter || "departments"
+    }
+    return initialFilter || "departments"
+  }
+  
+  const [activeFilter, setActiveFilter] = React.useState(getActiveFilterFromPath())
   const [searchQuery, setSearchQuery] = React.useState("")
+
+  React.useEffect(() => {
+    const filterFromPath = getActiveFilterFromPath()
+    if (filterFromPath !== activeFilter) {
+      setActiveFilter(filterFromPath)
+    }
+  }, [pathname])
 
   const [departments, setDepartments] = React.useState<Department[]>(mockDepartments)
   const [employees, setEmployees] = React.useState<Employee[]>(mockEmployees)
@@ -292,21 +319,24 @@ export function HRContent() {
     <div className="flex flex-col h-full">
       <div className="shrink-0 border-b px-4 lg:px-6 mb-3 pt-4 pb-0 bg-background/95 backdrop-blur-md sticky top-0 z-10">
         <nav className="flex gap-6 overflow-x-auto" aria-label="HR tabs">
-          {filters.map((filter) => (
-            <button
-              key={filter.id}
-              onClick={() => {
-                setActiveFilter(filter.id)
-                setSearchQuery("")
-                setSelectedDepartment(null)
-              }}
-              className={`text-muted-foreground hover:text-foreground relative whitespace-nowrap border-b-2 text-sm font-medium transition-colors pb-3.5 ${
-                activeFilter === filter.id ? "text-foreground border-foreground" : "border-transparent"
-              }`}
-            >
-              {filter.label}
-            </button>
-          ))}
+          {filters.map((filter) => {
+            const isActive = activeFilter === filter.id || pathname === filter.path
+            return (
+              <Link
+                key={filter.id}
+                href={filter.path}
+                onClick={() => {
+                  setSearchQuery("")
+                  setSelectedDepartment(null)
+                }}
+                className={`text-muted-foreground hover:text-foreground relative whitespace-nowrap border-b-2 text-sm font-medium transition-colors pb-3.5 ${
+                  isActive ? "text-foreground border-foreground" : "border-transparent"
+                }`}
+              >
+                {filter.label}
+              </Link>
+            )
+          })}
         </nav>
       </div>
 
