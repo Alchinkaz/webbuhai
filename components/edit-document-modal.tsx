@@ -116,6 +116,43 @@ export function EditDocumentModal({
         if (initialMetadata) {
           setDocumentMetadata(initialMetadata)
         }
+        
+        // Automatically fill default values for new documents
+        setTimeout(() => {
+          setValues({
+            beneficiary: "Ип Alchin",
+            iin_bin: "960821350108",
+            iik: "KZ9496511F000831429119",
+            kbe: "17",
+            bank: "АО ForteBank",
+            bik: "IRTYKZKA",
+            payment_code: "952",
+            invoice_number: "1",
+            invoice_date: "2025-10-08",
+            supplier_iin: "960821350108",
+            supplier_name: "Ип Alchin",
+            supplier_address: "г. Актау 11 мкр. 27 дом",
+            client_iin: "0",
+            client_name: "Розничный покупатель",
+            client_address: "г. Актау 11 мкр. 27 дом",
+            contract: "Без договора",
+            vat: "0,00",
+            position: "Директор",
+            executor_name: "Цуриев Ч. Д.",
+          })
+
+          setTableRows([
+            {
+              id: "1",
+              code: "789897",
+              name: "Установка системы GPS",
+              quantity: "1",
+              unit: "услуга",
+              price: "30000.00",
+              total: "30000.00",
+            },
+          ])
+        }, 100)
       }
 
       setLoading(false)
