@@ -99,6 +99,37 @@ export async function downloadTemplateFromSupabase(url: string): Promise<ArrayBu
   return response.arrayBuffer()
 }
 
+export async function updateTemplateMetadataInSupabase(id: string, updates: { name?: string }): Promise<Template> {
+  const supabase = getSupabaseClient()
+
+  const updateData: Record<string, any> = {}
+  if (updates.name !== undefined) {
+    updateData.name = updates.name
+  }
+
+  const { data, error } = await supabase
+    .from("templates")
+    .update(updateData)
+    .eq("id", id)
+    .select()
+    .single()
+
+  if (error || !data) {
+    console.error("[v0] Error updating template metadata:", error)
+    throw new Error("Failed to update template metadata")
+  }
+
+  return {
+    id: data.id,
+    name: data.name,
+    fileName: data.file_name,
+    variables: data.variables || [],
+    url: data.file_url,
+    createdAt: data.created_at,
+    documentType: data.document_type,
+  }
+}
+
 export async function deleteTemplateFromSupabase(id: string): Promise<void> {
   const supabase = getSupabaseClient()
 

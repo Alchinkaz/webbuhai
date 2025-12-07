@@ -138,6 +138,32 @@ export async function getTemplate(id: string): Promise<Template | null> {
   return template || null
 }
 
+export async function updateTemplate(id: string, updates: { name?: string }): Promise<void> {
+  try {
+    const { updateTemplateMetadataInSupabase } = await import("./storage-supabase")
+    const updatedTemplate = await updateTemplateMetadataInSupabase(id, updates)
+
+    // Update localStorage cache
+    const templates = await getTemplates()
+    const updatedTemplates = templates.map((t) => (t.id === id ? updatedTemplate : t))
+
+    const storageTemplates = updatedTemplates.map((t) => ({
+      ...t,
+      content: t.content ? arrayBufferToBase64(t.content) : undefined,
+    }))
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(storageTemplates))
+    console.log("[v0] Template updated in Supabase")
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("templates-updated"))
+    }
+  } catch (error) {
+    console.error("[v0] Error updating template:", error)
+    throw error
+  }
+}
+
 export async function deleteTemplate(id: string): Promise<void> {
   try {
     const { deleteTemplateFromSupabase } = await import("./storage-supabase")

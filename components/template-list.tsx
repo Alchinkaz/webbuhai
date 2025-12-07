@@ -1,12 +1,22 @@
 "use client"
 
-import { FileText, Calendar, Trash2, Edit, Download } from "lucide-react"
+import { FileText, Calendar, Trash2, Edit, Download, Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { deleteTemplate, type Template } from "@/lib/storage"
+import { deleteTemplate, updateTemplate, type Template } from "@/lib/storage"
 import Link from "next/link"
 import { useState } from "react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 interface TemplateListProps {
   templates: Template[]
@@ -15,12 +25,42 @@ interface TemplateListProps {
 
 export function TemplateList({ templates, onUpdate }: TemplateListProps) {
   const [downloading, setDownloading] = useState<string | null>(null)
+  const [editingTemplate, setEditingTemplate] = useState<Template | null>(null)
+  const [editName, setEditName] = useState("")
+  const [isSaving, setIsSaving] = useState(false)
 
   const handleDelete = async (id: string) => {
     if (confirm("Вы уверены, что хотите удалить этот шаблон?")) {
       await deleteTemplate(id)
       onUpdate()
     }
+  }
+
+  const handleEdit = (template: Template) => {
+    setEditingTemplate(template)
+    setEditName(template.name)
+  }
+
+  const handleSaveEdit = async () => {
+    if (!editingTemplate || !editName.trim()) return
+
+    setIsSaving(true)
+    try {
+      await updateTemplate(editingTemplate.id, { name: editName.trim() })
+      setEditingTemplate(null)
+      setEditName("")
+      onUpdate()
+    } catch (error) {
+      console.error("Error updating template:", error)
+      alert("Ошибка при обновлении шаблона")
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setEditingTemplate(null)
+    setEditName("")
   }
 
   const handleDownload = async (template: Template) => {
@@ -96,6 +136,14 @@ export function TemplateList({ templates, onUpdate }: TemplateListProps) {
                 <Button
                   variant="outline"
                   size="icon"
+                  onClick={() => handleEdit(template)}
+                  title="Редактировать название"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
                   onClick={() => handleDownload(template)}
                   disabled={downloading === template.id}
                   title="Скачать образец"
@@ -112,6 +160,40 @@ export function TemplateList({ templates, onUpdate }: TemplateListProps) {
       ) : (
         <div className="col-span-full text-center py-8 text-muted-foreground">Нет шаблонов для отображения</div>
       )}
+
+      <Dialog open={editingTemplate !== null} onOpenChange={(open) => !open && handleCancelEdit()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Редактировать название шаблона</DialogTitle>
+            <DialogDescription>Измените название шаблона</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="template-name">Название</Label>
+              <Input
+                id="template-name"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="Введите название шаблона"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault()
+                    handleSaveEdit()
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCancelEdit} disabled={isSaving}>
+              Отмена
+            </Button>
+            <Button onClick={handleSaveEdit} disabled={!editName.trim() || isSaving}>
+              {isSaving ? "Сохранение..." : "Сохранить"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
